@@ -298,11 +298,16 @@ public class MachineService {
 		ZipOutputStream zipOutputStream = null;
 		try {
 			zipOutputStream = new ZipOutputStream(new FileOutputStream(zippedFile));
-			String logFiles[] = new String[]{System.getProperty("user.home")+"\\Record\\parameter.record","log.scrout", "log.screrr", "log.out", "log.err", "cwh.log", "log4j2.properties", "debuglog4j2.properties", "testlog4j2.properties"};
+			String logFiles[] = new String[]{System.getProperty("user.home")+"/Record/parameter.record","log.scrout", "log.screrr", "log.out", "log.err", "cwh.log", "log4j2.properties", "debuglog4j2.properties", "testlog4j2.properties"};
 			for (String logFile : logFiles) {
 				File file = new File(logFile);
 				if (file.exists()) {
 					IOUtilities.zipFile(file, zipOutputStream);
+				}
+				else
+				{
+					logger.error("derby cannot find the file parameter.record:"); //2019//11/19 derby added. linux use "/" not "\\"
+					logger.error(file);
 				}
 			}
 			
