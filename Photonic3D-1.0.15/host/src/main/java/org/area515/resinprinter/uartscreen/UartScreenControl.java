@@ -12,6 +12,7 @@ import org.area515.resinprinter.services.PrintableService;
 import org.area515.resinprinter.services.PrinterService;
 import org.area515.util.BasicUtillities;
 import org.area515.util.IOUtilities;
+import org.area515.resinprinter.printer.Language;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -368,6 +369,15 @@ public class UartScreenControl
     {
         List<String> files = getPrintableList(whichDir);
         String file;
+        String modelNum = HostProperties.Instance().getModelNumber();
+        int fileCnt = 0;
+    	if(modelNum.equals("3DTALK_DS200")) 
+       	 	fileCnt = 5;
+    	else if(modelNum.equals("3DTALK_DF200"))
+    		fileCnt = 4;
+    	else 
+       	 	fileCnt = 5;
+       
 
         if (selected < 0)
             selected = 0;
@@ -382,46 +392,72 @@ public class UartScreenControl
         if (cur_file_selected < 0)
             cur_file_page = 0;
         else
-            cur_file_page = cur_file_selected / 5;
+            cur_file_page = cur_file_selected / fileCnt;
 
         cur_file_dir = whichDir;
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < fileCnt; i++) {
             file = "";
-            if (files.size() > i + cur_file_page * 5) {
-                file = files.get(i + cur_file_page * 5);
+            if (files.size() > i + cur_file_page * fileCnt) {
+                file = files.get(i + cur_file_page * fileCnt);
             }
             try {
-                writeText(UartScreenVar.addr_txt_fileList[i], String.format("%-32s", file).getBytes("GBK"));
+               	byte[] sendString = String.format("%-64s", file).getBytes("UTF-16BE");
+                writeText(UartScreenVar.addr_txt_fileList[i], sendString);//String.format("%-32s", file).getBytes("Unicode"));
             }
             catch (UnsupportedEncodingException e) {
                 System.out.println(e.toString());
             }
         }
-        clearProgBar();
+        clearProgBar(modelNum);
         showFilePageNumber();
 
-        fileHighLight(cur_file_selected);
+        fileHighLight(cur_file_selected,modelNum);
     }
 
-    private void fileHighLight(int selected)
+    private void fileHighLight(int selected,String modelNum) //modify by derby 2020/1/14
     {
         if (selected < 0)
             return;
 
-        selected = selected % 5;
+        
+        int fileCnt = 0;
+    	if(modelNum.equals("3DTALK_DS200")) 
+       	 	fileCnt = 5;
+    	else if(modelNum.equals("3DTALK_DF200"))
+    		fileCnt = 4;
+    	else 
+       	 	fileCnt = 5;
+    	
+    	selected = selected % fileCnt;
 
-        for (int i = 0; i < 5; i++) {
-            if (selected == i)
-                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
-            else
-                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xFF, (byte)0xFF});
+        for (int i = 0; i < fileCnt; i++) {
+        	if(modelNum.equals("3DTALK_DF200")) {
+	            if (selected == i)
+	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
+	            else
+	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0x00, (byte)0x00});
+        	}
+        	else if(modelNum.equals("3DTALK_DS200")) {
+        		if (selected == i)
+	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
+	            else
+	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xFF, (byte)0xFF});
+        	}
         }
     }
 
-    private void clearProgBar()
+    private void clearProgBar(String modelNum)
     {
-        for (int i = 0; i < 5; i++) {
+    	int fileCnt = 0;
+    	if(modelNum.equals("3DTALK_DS200")) 
+       	 	fileCnt = 5;
+    	else if(modelNum.equals("3DTALK_DF200"))
+    		fileCnt = 4;
+    	else {
+       	 fileCnt = 5;
+       }
+        for (int i = 0; i < fileCnt; i++) {
             writeText(UartScreenVar.addr_icon_prog[i], new byte[] {0x00, (byte)65});
         }
     }
@@ -456,11 +492,20 @@ public class UartScreenControl
 
     private void uploadFromUdiskToLocal(String fileName)
     {
+    	
         PrintableService.INSTANCE.uploadViaUdisk(fileName, new ProgressCallback() {
             @Override
             public void onProgress(double progress)
             {
-                writeText(UartScreenVar.addr_icon_prog[cur_file_selected % 5], new byte[] {0x00, (byte)(39 + progress / 4)});
+            	String modelNum = HostProperties.Instance().getModelNumber();
+            	int fileCnt = 0;
+            	if(modelNum.equals("3DTALK_DS200"))
+            		fileCnt = 5;
+            	else if(modelNum.equals("3DTALK_DF200"))
+            		fileCnt = 4;
+            	else
+            		fileCnt = 5;
+                writeText(UartScreenVar.addr_icon_prog[cur_file_selected % fileCnt], new byte[] {0x00, (byte)(39 + progress / 4)});
                 System.out.println(progress);
             }
         });
@@ -559,7 +604,7 @@ public class UartScreenControl
                 network = network_list.get(i + cur_network_page * 5).getSsid();
             }
             try {
-                writeText(UartScreenVar.addr_txt_network_List[i], String.format("%-32s", network).getBytes("GBK"));
+                writeText(UartScreenVar.addr_txt_network_List[i], String.format("%-32s", network).getBytes("UTF-16BE"));
             }
             catch (UnsupportedEncodingException e) {
                 System.out.println(e.toString());
@@ -665,7 +710,12 @@ public class UartScreenControl
     private void setNetworkSsid(String ssid)
     {
         this.network_ssid = ssid;
-        writeText(UartScreenVar.addr_txt_networkSsid, String.format("%-32s", ssid).getBytes());
+        try {
+			writeText(UartScreenVar.addr_txt_networkSsid, String.format("%-32s", ssid).getBytes("UTF-16BE"));
+		} catch (UnsupportedEncodingException e) {
+			
+			System.out.println(e.toString());
+		}
     }
 
     private String getNetworkPsk()
@@ -745,10 +795,12 @@ public class UartScreenControl
         long ledUsedTime = getPrinter().getLedUsedTime();
         string = String.format("%.1f/%d", ledUsedTime/(60*60*1000.0), 5000);
         writeText(UartScreenVar.addr_txt_lifetime_led, String.format("%-10s", string).getBytes());
+        writeText(UartScreenVar.addr_icon_lifetime_led, new byte[] {0x00, (byte)(97 + ledUsedTime / (60*60*1000.0*1000))}); //add by derby 2020/1/14 led_life icon
 
         long screenUsedTime = getPrinter().getScreenUsedTime();
         string = String.format("%.1f/%d", screenUsedTime/(60*60*1000.0), 1000);
         writeText(UartScreenVar.addr_txt_lifetime_screen, String.format("%-10s", string).getBytes());
+        writeText(UartScreenVar.addr_icon_lifetime_led, new byte[] {0x00, (byte)(97 + screenUsedTime / (60*60*1000.0*200))}); //add by derby 2020/1/14 screen_life icon
     }
 
     private void loadAdminAccount(String password)
@@ -818,13 +870,16 @@ public class UartScreenControl
         }
         else if (force) {
             String string;
-            if (getLanguage() == 1)
-                string = status.getStateString();
-            else
+            if (getLanguage() == Language.RU.ordinal())
+                string = status.getStateStringRU();
+            else if(getLanguage() == Language.CN.ordinal())
                 string = status.getStateStringCN();
+            else
+            	string = status.getStateString();//add by debry 2020/1/14
+        
 
             try {
-                writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", string).getBytes("GBK"));
+                writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", string).getBytes("UTF-16BE")); //derby 1-14
                 if (status == JobStatus.Printing)
                     writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Pause)});
                 else if (status.isPaused())
@@ -840,8 +895,9 @@ public class UartScreenControl
             catch (UnsupportedEncodingException e) {
                 System.out.println(e.toString());
             }
+        }  
         }
-    }
+    
 
     private void setPrintFileName(String fileName, boolean force, boolean hide)
     {
@@ -851,11 +907,15 @@ public class UartScreenControl
         }
 
         if (hide) {
-            writeText(UartScreenVar.addr_txt_printFileName, String.format("%-32s", "").getBytes());
+            try {
+				writeText(UartScreenVar.addr_txt_printFileName, String.format("%-32s", fileName).getBytes("UTF-16BE"));
+			} catch (UnsupportedEncodingException e) {
+				System.out.println(e.toString());
+			}
         }
         else if (force) {
             try {
-                writeText(UartScreenVar.addr_txt_printFileName, String.format("%-32s", this.printFileName).getBytes("GBK"));
+                writeText(UartScreenVar.addr_txt_printFileName, String.format("%-32s", this.printFileName).getBytes("UTF-16BE")); //derby 1-14
             }
             catch (UnsupportedEncodingException e) {
                 System.out.println(e.toString());
@@ -876,6 +936,7 @@ public class UartScreenControl
         else if (force) {
             String string = String.format("%.1f%%", printProgress);
             writeText(UartScreenVar.addr_txt_printProgress, String.format("%-10s", string).getBytes());
+            writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(80 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
         }
     }
 
@@ -888,10 +949,11 @@ public class UartScreenControl
         }
 
         if (hide) {
-            writeText(UartScreenVar.addr_txt_printTime, String.format("%-32s", "").getBytes());
+        	
+            //writeText(UartScreenVar.addr_icon_printTime, String.format("%-32s", "").getBytes());
         }
         else if (force) {
-            String string = String.format("%d:%02d:%02d / %d:%02d:%02d",
+           /* String string = String.format("%d:%02d:%02d / %d:%02d:%02d",
                     this.printedTime / 3600000,
                     (this.printedTime % 3600000) / 60000,
                     (this.printedTime % 60000) / 1000,
@@ -899,6 +961,18 @@ public class UartScreenControl
                     (this.remainingTime % 3600000) / 60000,
                     (this.remainingTime % 60000) / 1000);
             writeText(UartScreenVar.addr_txt_printTime, String.format("%-32s", string).getBytes());
+            */
+        	//add by derby 2020/2/18 printTime by icon
+        	long[] timeArray = {this.remainingTime/3600000/10,//hour high bit
+        			(this.remainingTime/3600000)%10,	//hour lower bit
+        			(this.remainingTime%3600000)/60000/10,  //min_H
+        			((this.remainingTime%3600000)/60000)%10,	//min_L
+        			(this.remainingTime%60000)/1000/10,	//sec_H
+        			((this.remainingTime%60000)/1000)%10};	//sec_L
+        	
+        	for(int i=0;i<7;i++) {
+        		writeText(UartScreenVar.addr_icon_printTime[i], new byte[] {0x00, (byte)(104+timeArray[i])});
+        	}
         }
     }
     /****************************notify uartscreen state -end*************************************/

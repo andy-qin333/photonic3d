@@ -29,10 +29,16 @@ public class UartScreenVar
     static final char addr_icon_water_pump = 0x0131;
     static final char addr_icon_image_logo = 0x0132;
     static final char addr_icon_image_full = 0x0133;
-
+    static final char addr_icon_printProgress = 0x0143; //add by derby 2020/1/14
+    static final char addr_icon_lifetime_led = 0x0140; //add by derby 2020/1/14
+    static final char addr_icon_lifetime_screen = 0x0141; //add by derby 2020/1/14
+    //add by derby 2020/2/18 {hour_H，hour_L,min_H,min_L,sec_H,sec_L}
+    static final char[] addr_icon_printTime = {0x0144, 0x0145, 0x0146, 0x0147, 0x0148, 0x0149};
+    
+    
     static final char addr_txt_machineStatus = 0x1000;
     static final char addr_txt_printFileName = 0x1020;
-    static final char addr_txt_printTime = 0x1040;
+    static final char addr_txt_printTime = 0x1040;  
     static final char addr_txt_printProgress = 0x1060;
     static final char[] addr_txt_fileList = {0x1100, 0x1120, 0x1140, 0x1160, 0x1180};
     static final char addr_txt_filePage = 0x11A0;

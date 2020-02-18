@@ -310,7 +310,7 @@ public class SerialManager {
 		identifier = resources.comPort;
 
 		SerialCommunicationsPort otherPort = printer.getUartScreenSerialPort();
-		if (otherPort != null) {
+		if (otherPort != null) {                                                                            
 			printersBySerialPort.remove(identifier);
 			throw new AlreadyAssignedException("Printer firmware serial port already assigned:" + otherPort, otherPort);
 		}
