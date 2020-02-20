@@ -524,10 +524,11 @@ public class UartScreenControl
         }
     }
 
-    private JobStatus jobPause()
+    private void jobPause()
     {
         Printer printer = getPrinter();
-        return printer.togglePause();
+        printer.togglePause();
+        setMachineStatus(printer.getStatus(), false, false);
     }
 
     private void jobStop()
@@ -982,19 +983,27 @@ public class UartScreenControl
     {
         if (payload.length < 9)
             return;
+        String modelNum = HostProperties.Instance().getModelNumber();
+        int fileCnt = 0;
+    	if(modelNum.equals("3DTALK_DS200")) 
+       	 	fileCnt = 5;
+    	else if(modelNum.equals("3DTALK_DF200"))
+    		fileCnt = 4;
+    	else 
+       	 	fileCnt = 5;
         int key_value = payload[8];
 
         if(key_value >= 0x00 && key_value <= 0x04) //鏂囦欢閫夋嫨
-            filesUpdate(cur_file_dir, cur_file_page * 5 + key_value);
+            filesUpdate(cur_file_dir, key_value+cur_file_page*fileCnt);
         else if (key_value == 0x05) //鏈湴鏂囦欢
             filesUpdate("local", 0);
         else if (key_value == 0x06) //U鐩樻枃浠�
             filesUpdate("udisk", 0);
-        else if (key_value == 0x07) //鍚戝墠缈婚〉
-            filesUpdate(cur_file_dir, cur_file_selected - 5);
-        else if (key_value == 0x08) //鍚戝悗缈婚〉
-            filesUpdate(cur_file_dir, cur_file_selected + 5);
-        else if (key_value == 0x09) { //鏂囦欢鍒犻櫎
+        else if (key_value == 0x07) //向下翻页
+            filesUpdate(cur_file_dir, cur_file_selected-fileCnt);
+        else if (key_value == 0x08) //向上翻页
+            filesUpdate(cur_file_dir, cur_file_selected+fileCnt );
+        else if (key_value == 0x09) { 
             if (getPrinter().getStatus().isPrintInProgress())
                 return;
             fileDelete();
@@ -1136,10 +1145,12 @@ public class UartScreenControl
         key_value = payload[8];
 
         ParameterRecord parameterRecord = HostProperties.Instance().getParameterRecord();
-        if (key_value == 0x01)
-            parameterRecord.setLanguage(0);
-        else if (key_value == 0x02)
+        if (key_value == 0x01)	//中文
+            parameterRecord.setLanguage(0);  
+        else if (key_value == 0x02)	//英文
             parameterRecord.setLanguage(1);
+        else if (key_value == 0x03)	//俄文
+            parameterRecord.setLanguage(3);
         HostProperties.Instance().saveParameterRecord(parameterRecord);
         setMachineStatus(getPrinter().getStatus(), true, false);
     }
