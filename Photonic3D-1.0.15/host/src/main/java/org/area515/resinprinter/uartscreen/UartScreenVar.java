@@ -98,9 +98,9 @@ public class UartScreenVar
             else if (iconPos == IconPos.Stop)
                 pos = 71;
             else if (iconPos == IconPos.Empty1)
-                pos = 72;
+                pos = 66;
             else if (iconPos == IconPos.LightSwitch)
-                pos = 73;
+                pos = 67;
             else if (iconPos == IconPos.WaterSwitch)
                 pos = 74;
             else if (iconPos == IconPos.PresetImage)

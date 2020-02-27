@@ -630,7 +630,7 @@ public class UartScreenControl
             if (selected == i)
                 writeText(UartScreenVar.desc_txt_network_list[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
             else
-                writeText(UartScreenVar.desc_txt_network_list[i], new byte[] {(byte)0xFF, (byte)0xFF});
+                writeText(UartScreenVar.desc_txt_network_list[i], new byte[] {(byte)0x00, (byte)0x00});
         }
     }
 
@@ -954,25 +954,31 @@ public class UartScreenControl
             //writeText(UartScreenVar.addr_icon_printTime, String.format("%-32s", "").getBytes());
         }
         else if (force) {
-           /* String string = String.format("%d:%02d:%02d / %d:%02d:%02d",
-                    this.printedTime / 3600000,
-                    (this.printedTime % 3600000) / 60000,
-                    (this.printedTime % 60000) / 1000,
-                    this.remainingTime / 3600000,
-                    (this.remainingTime % 3600000) / 60000,
-                    (this.remainingTime % 60000) / 1000);
-            writeText(UartScreenVar.addr_txt_printTime, String.format("%-32s", string).getBytes());
-            */
-        	//add by derby 2020/2/18 printTime by icon
-        	long[] timeArray = {this.remainingTime/3600000/10,//hour high bit
-        			(this.remainingTime/3600000)%10,	//hour lower bit
-        			(this.remainingTime%3600000)/60000/10,  //min_H
-        			((this.remainingTime%3600000)/60000)%10,	//min_L
-        			(this.remainingTime%60000)/1000/10,	//sec_H
-        			((this.remainingTime%60000)/1000)%10};	//sec_L
+        	String modelNum = HostProperties.Instance().getModelNumber();
+        	if(modelNum.equals("3DTALK_DS200")) {
+        		String string = String.format("%d:%02d:%02d / %d:%02d:%02d",
+                        this.printedTime / 3600000,
+                        (this.printedTime % 3600000) / 60000,
+                        (this.printedTime % 60000) / 1000,
+                        this.remainingTime / 3600000,
+                        (this.remainingTime % 3600000) / 60000,
+                        (this.remainingTime % 60000) / 1000);
+                writeText(UartScreenVar.addr_txt_printTime, String.format("%-32s", string).getBytes());
+        	}
+        	else if(modelNum.equals("3DTALK_DF200")) {
+        		//add by derby 2020/2/18 printTime by icon
+        		long[] timeArray = {this.remainingTime/3600000/10,//hour high bit
+            			(this.remainingTime/3600000)%10,	//hour lower bit
+            			(this.remainingTime%3600000)/60000/10,  //min_H
+            			((this.remainingTime%3600000)/60000)%10,	//min_L
+            			(this.remainingTime%60000)/1000/10,	//sec_H
+            			((this.remainingTime%60000)/1000)%10};	//sec_L
+            	
+            	for(int i=0;i<7;i++) {
+            		writeText(UartScreenVar.addr_icon_printTime[i], new byte[] {0x00, (byte)(104+timeArray[i])});
+        	}
         	
-        	for(int i=0;i<7;i++) {
-        		writeText(UartScreenVar.addr_icon_printTime[i], new byte[] {0x00, (byte)(104+timeArray[i])});
+        	
         	}
         }
     }
@@ -1343,11 +1349,11 @@ public class UartScreenControl
         key_value = payload[8];
 
         if (key_value == 0x00) {
-            //杩涘叆椤甸潰
+            //进入灯板校准
             ledPwmValue = new Integer(getPrinter().getGCodeControl().executeReadLedPwmValue());
             writeText(UartScreenVar.addr_txt_led_pwm, new byte[]{(byte) ((ledPwmValue >> 8) & 0xFF), (byte) (ledPwmValue & 0xFF)});
         } else if (key_value == 0x01) {
-            //鐏澘寮�鍏�
+            //灯板开关
             if (!ledBoardEnabled) {
                 getPrinter().getGCodeControl().executeShutterOn();
                 ledBoardEnabled = true;
@@ -1363,7 +1369,7 @@ public class UartScreenControl
                     {
                         getPrinter().getGCodeControl().executeShutterOff();
                         ledBoardEnabled = false;
-                        writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, 72});
+                        writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Empty1)});
                     }
                 }, 40000);
             } else {
