@@ -38,7 +38,7 @@ import javax.imageio.ImageIO;
 
 public class UartScreenControl
 {
-    private String version = "0.4.26";  //derby on 2019-11-19
+    private String version = "0.4.27";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -101,6 +101,7 @@ public class UartScreenControl
     public UartScreenControl(Printer printer)
     {
         this.printer = printer;
+        this.getLanguage();
         writeQueue = new ArrayBlockingQueue<byte[]>(64);
     }
 
@@ -796,12 +797,12 @@ public class UartScreenControl
         long ledUsedTime = getPrinter().getLedUsedTime();
         string = String.format("%.1f/%d", ledUsedTime/(60*60*1000.0), 5000);
         writeText(UartScreenVar.addr_txt_lifetime_led, String.format("%-10s", string).getBytes());
-        writeText(UartScreenVar.addr_icon_lifetime_led, new byte[] {0x00, (byte)(97 + ledUsedTime / (60*60*1000.0*1000))}); //add by derby 2020/1/14 led_life icon
+        writeText(UartScreenVar.addr_icon_lifetime_led, new byte[] {0x00, (byte)(102 - ledUsedTime / (60*60*1000.0*1000))}); //add by derby 2020/1/14 led_life icon
 
         long screenUsedTime = getPrinter().getScreenUsedTime();
         string = String.format("%.1f/%d", screenUsedTime/(60*60*1000.0), 1000);
         writeText(UartScreenVar.addr_txt_lifetime_screen, String.format("%-10s", string).getBytes());
-        writeText(UartScreenVar.addr_icon_lifetime_led, new byte[] {0x00, (byte)(97 + screenUsedTime / (60*60*1000.0*200))}); //add by derby 2020/1/14 screen_life icon
+        writeText(UartScreenVar.addr_icon_lifetime_screen, new byte[] {0x00, (byte)(102 - screenUsedTime / (60*60*1000.0*200))}); //add by derby 2020/1/14 screen_life icon
     }
 
     private void loadAdminAccount(String password)
@@ -877,19 +878,38 @@ public class UartScreenControl
                 string = status.getStateStringCN();
             else
             	string = status.getStateString();//add by debry 2020/1/14
+            
+            String modelNum = HostProperties.Instance().getModelNumber();
+            //System.out.println(string+getLanguage());
         
 
             try {
                 writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", string).getBytes("UTF-16BE")); //derby 1-14
-                if (status == JobStatus.Printing)
-                    writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Pause)});
-                else if (status.isPaused())
-                    writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Print)});
+                if (status == JobStatus.Printing) {
+                	if(modelNum.equals("3DTALK_DS200")) //modify by derby 2020-3-10左下角图标显示DS200机型与语言相关，DF200无关
+                		writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Pause)});
+                	else
+                		writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(0, UartScreenVar.IconPos.Pause)});
+                		
+                }
+                    
+                else if (status.isPaused()) {
+                	if(modelNum.equals("3DTALK_DS200"))
+                		writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Print)});
+                	else
+                		writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(0, UartScreenVar.IconPos.Print)});
+                }
+                    
                 else
                     writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Empty0)});
 
-                if (status.isPrintActive())
-                    writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Stop)});
+                if (status.isPrintActive()){
+                	if(modelNum.equals("3DTALK_DS200"))
+                		writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Stop)});
+                	else
+                		writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(0, UartScreenVar.IconPos.Stop)});
+                }
+                    
                 else
                     writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Empty0)});
             }
@@ -1153,12 +1173,15 @@ public class UartScreenControl
         ParameterRecord parameterRecord = HostProperties.Instance().getParameterRecord();
         if (key_value == 0x01)	//中文
             parameterRecord.setLanguage(0);  
-        else if (key_value == 0x02)	//英文
-            parameterRecord.setLanguage(1);
+        else if (key_value == 0x02) 
+        	parameterRecord.setLanguage(1);//英文
         else if (key_value == 0x03)	//俄文
             parameterRecord.setLanguage(3);
+        else
+        	return;
         HostProperties.Instance().saveParameterRecord(parameterRecord);
         setMachineStatus(getPrinter().getStatus(), true, false);
+        goPage(UartScreenVar.getPagePos(getLanguage(), UartScreenVar.PagePos.Main));
     }
 
     private void action_move_control(byte[] payload)

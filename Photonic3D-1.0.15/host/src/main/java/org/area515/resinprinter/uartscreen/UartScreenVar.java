@@ -102,11 +102,11 @@ public class UartScreenVar
             else if (iconPos == IconPos.LightSwitch)
                 pos = 67;
             else if (iconPos == IconPos.WaterSwitch)
-                pos = 74;
+                pos = 67;
             else if (iconPos == IconPos.PresetImage)
-                pos = 75;
+                pos = 67;
             else if (iconPos == IconPos.FullScreenImage)
-                pos = 76;
+                pos = 67;
         }
         else {
             if (iconPos == IconPos.Empty0)
@@ -118,15 +118,15 @@ public class UartScreenVar
             else if (iconPos == IconPos.Stop)
                 pos = 79;
             else if (iconPos == IconPos.Empty1)
-                pos = 72;
+                pos = 66;
             else if (iconPos == IconPos.LightSwitch)
-                pos = 80;
+                pos = 67;
             else if (iconPos == IconPos.WaterSwitch)
-                pos = 81;
+                pos = 67;
             else if (iconPos == IconPos.PresetImage)
-                pos = 82;
+                pos = 67;
             else if (iconPos == IconPos.FullScreenImage)
-                pos = 83;
+                pos = 67;
         }
         return pos;
     }
