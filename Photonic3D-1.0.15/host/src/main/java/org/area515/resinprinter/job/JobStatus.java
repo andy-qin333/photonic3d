@@ -123,21 +123,21 @@ public enum JobStatus {
 			//string = new String(new char[] {0x5C31, 0x7EEA});//就绪
 			string = "就绪";
 		else if (this == JobStatus.ErrorScreen)
-			string = new String(new char[] {0x5C4F, 0x5E55, 0x9519, 0x8BEF});//屏幕错误
+			string = "屏幕错误";//屏幕错误
 		else if (this == JobStatus.ErrorControlBoard)
-			string = new String(new char[] {0x63A7, 0x5236, 0x7248, 0x9519, 0x8BEF});//控制板错误
+			string = "控制板错误";//控制板错误
 		else if (this == JobStatus.Connecting)
-			string = new String(new char[] {0x6B63, 0x5728, 0x8FDE, 0x63A5});//正在连接
+			string = "正在连接";//正在连接
 		else if (this == JobStatus.Printing)
-			string = new String(new char[] {0x6253, 0x5370, 0x4E2D});//打印中
+			string = "打印中";//打印中
 		else if (this == JobStatus.Failed)
-			string = new String(new char[] {0x5931, 0x8D25});//失败
+			string = "失败";//失败
 		else if (this == JobStatus.Completed)
-			string = new String(new char[] {0x5B8C, 0x6210});//完成
+			string = "完成";//完成
 		else if (this == JobStatus.Cancelled)
-			string = new String(new char[] {0x5DF2, 0x53D6, 0x6D88});//已取消
+			string = "已取消";//已取消
 		else if (this == JobStatus.Cancelling)
-			string = new String(new char[] {0x6B63, 0x5728, 0x53D6, 0x6D88});//正在取消
+			string = "正在取消";//正在取消
 		else if (this == JobStatus.Deleted)
 			string = new String(new char[] {0x5DF2, 0x5220, 0x9664});//已删除
 		else if (this == JobStatus.Paused)

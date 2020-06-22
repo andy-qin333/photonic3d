@@ -1,5 +1,7 @@
 package org.area515.resinprinter.uartscreen;
 
+import org.area515.resinprinter.printer.Language;
+
 /**
  * Created by zyd on 2018/9/4.
  */
@@ -86,47 +88,96 @@ public class UartScreenVar
         Admin
     }
 
-    public static int getIconPos(int lang, IconPos iconPos) {
+    public static int getIconPos(int lang, String ModelNumber, IconPos iconPos) {//derby2020-6-22 modify for more Models
         int pos = 0;
-        if (lang == 0) {
-            if (iconPos == IconPos.Empty0)
-                pos = 68;
-            else if (iconPos == IconPos.Print)
-                pos = 69;
-            else if (iconPos == IconPos.Pause)
-                pos = 70;
-            else if (iconPos == IconPos.Stop)
-                pos = 71;
-            else if (iconPos == IconPos.Empty1)
-                pos = 66;
-            else if (iconPos == IconPos.LightSwitch)
-                pos = 67;
-            else if (iconPos == IconPos.WaterSwitch)
-                pos = 67;
-            else if (iconPos == IconPos.PresetImage)
-                pos = 67;
-            else if (iconPos == IconPos.FullScreenImage)
-                pos = 67;
-        }
-        else {
-            if (iconPos == IconPos.Empty0)
-                pos = 68;
-            else if (iconPos == IconPos.Print)
-                pos = 77;
-            else if (iconPos == IconPos.Pause)
-                pos = 78;
-            else if (iconPos == IconPos.Stop)
-                pos = 79;
-            else if (iconPos == IconPos.Empty1)
-                pos = 66;
-            else if (iconPos == IconPos.LightSwitch)
-                pos = 67;
-            else if (iconPos == IconPos.WaterSwitch)
-                pos = 67;
-            else if (iconPos == IconPos.PresetImage)
-                pos = 67;
-            else if (iconPos == IconPos.FullScreenImage)
-                pos = 67;
+        switch(lang) {
+        case 0: //CN中文
+        	if(ModelNumber.equals("3DTALK_DF200")) {
+        		if (iconPos == IconPos.Empty0)
+	                pos = 68;
+	            else if (iconPos == IconPos.Print)
+	                pos = 69;
+	            else if (iconPos == IconPos.Pause)
+	                pos = 70;
+	            else if (iconPos == IconPos.Stop)
+	                pos = 71;
+	            else if (iconPos == IconPos.Empty1)
+	                pos = 66;
+	            else if (iconPos == IconPos.LightSwitch)
+	                pos = 67;
+	            else if (iconPos == IconPos.WaterSwitch)
+	                pos = 67;
+	            else if (iconPos == IconPos.PresetImage)
+	                pos = 67;
+	            else if (iconPos == IconPos.FullScreenImage)
+	                pos = 67;
+        	}
+        	else if(ModelNumber.equals("3DTALK_DS200")) {
+        		if (iconPos == IconPos.Empty0)
+	                pos = 68;
+	            else if (iconPos == IconPos.Print)
+	                pos = 69;
+	            else if (iconPos == IconPos.Pause)
+	                pos = 70;
+	            else if (iconPos == IconPos.Stop)
+	                pos = 71;
+	            else if (iconPos == IconPos.Empty1)
+	                pos = 66;
+	            else if (iconPos == IconPos.LightSwitch)
+	                pos = 73;
+	            else if (iconPos == IconPos.WaterSwitch)
+	                pos = 74;
+	            else if (iconPos == IconPos.PresetImage)
+	                pos = 75;
+	            else if (iconPos == IconPos.FullScreenImage)
+	                pos = 76;
+        	}
+        	break;
+        	
+        case 1://EN英文
+        	if(ModelNumber.equals("3DTALK_DF200")) {
+	        	if (iconPos == IconPos.Empty0)
+	                pos = 68;
+	            else if (iconPos == IconPos.Print)
+	                pos = 77;
+	            else if (iconPos == IconPos.Pause)
+	                pos = 78;
+	            else if (iconPos == IconPos.Stop)
+	                pos = 79;
+	            else if (iconPos == IconPos.Empty1)
+	                pos = 66;
+	            else if (iconPos == IconPos.LightSwitch)
+	                pos = 67;
+	            else if (iconPos == IconPos.WaterSwitch)
+	                pos = 67;
+	            else if (iconPos == IconPos.PresetImage)
+	                pos = 67;
+	            else if (iconPos == IconPos.FullScreenImage)
+	                pos = 67;
+        	}
+        	else if(ModelNumber.equals("3DTALK_DS200")) {
+        		if (iconPos == IconPos.Empty0)
+	                pos = 68;
+	            else if (iconPos == IconPos.Print)
+	                pos = 77;
+	            else if (iconPos == IconPos.Pause)
+	                pos = 78;
+	            else if (iconPos == IconPos.Stop)
+	                pos = 79;
+	            else if (iconPos == IconPos.Empty1)
+	                pos = 66;
+	            else if (iconPos == IconPos.LightSwitch)
+	                pos = 80;
+	            else if (iconPos == IconPos.WaterSwitch)
+	                pos = 81;
+	            else if (iconPos == IconPos.PresetImage)
+	                pos = 82;
+	            else if (iconPos == IconPos.FullScreenImage)
+	                pos = 83;
+        	}
+        	break;
+        case 2://RU俄文
+        	break;
         }
         return pos;
     }

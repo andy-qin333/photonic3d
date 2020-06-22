@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -157,10 +159,14 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 					if (status != null) {
 						break;
 					}
-
-					RenderedData imageData = prepareImage.get();
+					logger.info("test11");
+				//	while(!prepareImage.isDone()) {
+				//		Thread.sleep(300);
+				//		logger.info("waiting for render");
+				//	}
+					RenderedData imageData = prepareImage.get(); //derby 6-10 造成假死现象（真实原因是串口屏的硬件没连接，直接删除配置，导致了问题随机发生）
+				
 					dataAid.cache.setCurrentRenderingPointer(imageFile);
-
 					if (imgIter.hasNext()) {
 						imageFile = imgIter.next();   
 						// FIXME: 2017/10/12 zyd add for support svg file -s
@@ -171,7 +177,7 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 							else
 								prepareImage = Main.GLOBAL_EXECUTOR
 										.submit(new SVGImageRender(dataAid, this, imageFile));
-
+							
 						} else
 							prepareImage = Main.GLOBAL_EXECUTOR
 									.submit(new SimpleImageRenderer(dataAid, this, imageFile));
@@ -180,16 +186,18 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 					} else {
 						slicePending = false;
 					}
-
+					
 					status = printImageAndPerformPostProcessing(dataAid, imageData.getPrintableImage());
-
+					
 					if (status != null) {
 						break;
 					}
+					logger.info("test5");
 				} while (slicePending);
 			}
 			return performFooter(dataAid);
-		} finally {
+		}
+		finally {
 			clearDataAid(printJob);
 		}
 	}

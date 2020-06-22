@@ -138,19 +138,19 @@ jar.archiveName = 'photonic3d.jar'
 
 // TASK CONFIG
 // -----------
-test {
-  systemProperty "java.library.path", osLibDir()
-  includes = ['**/*FullTestSuite*']
-
-  forkEvery = 5
-  maxHeapSize = "1G"
-  testLogging {
-    events "failed"
-    showStackTraces true
-    showExceptions true
-    exceptionFormat "full"
-  }
-}
+//test {
+//  systemProperty "java.library.path", osLibDir()
+//  includes = ['**/*FullTestSuite*']
+//
+//  forkEvery = 5
+//  maxHeapSize = "1G"
+//  testLogging {
+//    events "failed"
+//    showStackTraces true
+//    showExceptions true
+//    exceptionFormat "full"
+//  }
+//}
 
 javadoc {
   failOnError = false

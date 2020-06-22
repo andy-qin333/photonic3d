@@ -38,7 +38,7 @@ import javax.imageio.ImageIO;
 
 public class UartScreenControl
 {
-    private String version = "0.4.27";  //derby on 2019-11-19
+    private String version = "0.4.28";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -338,6 +338,11 @@ public class UartScreenControl
     {
         return HostProperties.Instance().getParameterRecord().getLanguage();
     }
+    
+    private String getModelNumber()
+    {
+        return HostProperties.Instance().getModelNumber();
+    }
 
     private void printBytes(byte[] bytes)
     {
@@ -370,11 +375,10 @@ public class UartScreenControl
     {
         List<String> files = getPrintableList(whichDir);
         String file;
-        String modelNum = HostProperties.Instance().getModelNumber();
         int fileCnt = 0;
-    	if(modelNum.equals("3DTALK_DS200")) 
+    	if(getModelNumber().equals("3DTALK_DS200")) 
        	 	fileCnt = 5;
-    	else if(modelNum.equals("3DTALK_DF200"))
+    	else if(getModelNumber().equals("3DTALK_DF200"))
     		fileCnt = 4;
     	else 
        	 	fileCnt = 5;
@@ -410,10 +414,10 @@ public class UartScreenControl
                 System.out.println(e.toString());
             }
         }
-        clearProgBar(modelNum);
+        clearProgBar(getModelNumber());
         showFilePageNumber();
 
-        fileHighLight(cur_file_selected,modelNum);
+        fileHighLight(cur_file_selected,getModelNumber());
     }
 
     private void fileHighLight(int selected,String modelNum) //modify by derby 2020/1/14
@@ -498,11 +502,10 @@ public class UartScreenControl
             @Override
             public void onProgress(double progress)
             {
-            	String modelNum = HostProperties.Instance().getModelNumber();
             	int fileCnt = 0;
-            	if(modelNum.equals("3DTALK_DS200"))
+            	if(getModelNumber().equals("3DTALK_DS200"))
             		fileCnt = 5;
-            	else if(modelNum.equals("3DTALK_DF200"))
+            	else if(getModelNumber().equals("3DTALK_DF200"))
             		fileCnt = 4;
             	else
             		fileCnt = 5;
@@ -808,7 +811,7 @@ public class UartScreenControl
     private void loadAdminAccount(String password)
     {
         writeText(UartScreenVar.addr_txt_admin_password, String.format("%-16s", "").getBytes());
-        if (password.equals("123456")) {
+        if (password.equals("123")) {
             goPage(UartScreenVar.getPagePos(getLanguage(), UartScreenVar.PagePos.Admin));
             setLiftTime();
         }
@@ -879,39 +882,22 @@ public class UartScreenControl
             else
             	string = status.getStateString();//add by debry 2020/1/14
             
-            String modelNum = HostProperties.Instance().getModelNumber();
             //System.out.println(string+getLanguage());
         
 
             try {
                 writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", string).getBytes("UTF-16BE")); //derby 1-14
-                if (status == JobStatus.Printing) {
-                	if(modelNum.equals("3DTALK_DS200")) //modify by derby 2020-3-10左下角图标显示DS200机型与语言相关，DF200无关
-                		writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Pause)});
-                	else
-                		writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(0, UartScreenVar.IconPos.Pause)});
-                		
-                }
+                if (status == JobStatus.Printing) 
+                	writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Pause)});
                     
-                else if (status.isPaused()) {
-                	if(modelNum.equals("3DTALK_DS200"))
-                		writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Print)});
-                	else
-                		writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(0, UartScreenVar.IconPos.Print)});
-                }
-                    
+                else if (status.isPaused()) 
+                	writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Print)});
                 else
-                    writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Empty0)});
-
-                if (status.isPrintActive()){
-                	if(modelNum.equals("3DTALK_DS200"))
-                		writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Stop)});
-                	else
-                		writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(0, UartScreenVar.IconPos.Stop)});
-                }
-                    
+                    writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty0)});
+                if (status.isPrintActive())
+                	writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Stop)});
                 else
-                    writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Empty0)});
+                    writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty0)});
             }
             catch (UnsupportedEncodingException e) {
                 System.out.println(e.toString());
@@ -974,8 +960,7 @@ public class UartScreenControl
             //writeText(UartScreenVar.addr_icon_printTime, String.format("%-32s", "").getBytes());
         }
         else if (force) {
-        	String modelNum = HostProperties.Instance().getModelNumber();
-        	if(modelNum.equals("3DTALK_DS200")) {
+        	if(getModelNumber().equals("3DTALK_DS200")) {
         		String string = String.format("%d:%02d:%02d / %d:%02d:%02d",
                         this.printedTime / 3600000,
                         (this.printedTime % 3600000) / 60000,
@@ -985,7 +970,7 @@ public class UartScreenControl
                         (this.remainingTime % 60000) / 1000);
                 writeText(UartScreenVar.addr_txt_printTime, String.format("%-32s", string).getBytes());
         	}
-        	else if(modelNum.equals("3DTALK_DF200")) {
+        	else if(getModelNumber().equals("3DTALK_DF200")) {
         		//add by derby 2020/2/18 printTime by icon
         		long[] timeArray = {this.remainingTime/3600000/10,//hour high bit
             			(this.remainingTime/3600000)%10,	//hour lower bit
@@ -1009,11 +994,10 @@ public class UartScreenControl
     {
         if (payload.length < 9)
             return;
-        String modelNum = HostProperties.Instance().getModelNumber();
         int fileCnt = 0;
-    	if(modelNum.equals("3DTALK_DS200")) 
+    	if(getModelNumber().equals("3DTALK_DS200")) 
        	 	fileCnt = 5;
-    	else if(modelNum.equals("3DTALK_DF200"))
+    	else if(getModelNumber().equals("3DTALK_DF200"))
     		fileCnt = 4;
     	else 
        	 	fileCnt = 5;
@@ -1323,21 +1307,21 @@ public class UartScreenControl
         }
 
         if (ledBoardEnabled)
-            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.LightSwitch)});
+            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.LightSwitch)});
         else
-            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Empty1)});
+            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
         if (waterPumpEnabled)
-            writeText(UartScreenVar.addr_icon_water_pump, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.WaterSwitch)});
+            writeText(UartScreenVar.addr_icon_water_pump, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.WaterSwitch)});
         else
-            writeText(UartScreenVar.addr_icon_water_pump, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Empty1)});
+            writeText(UartScreenVar.addr_icon_water_pump, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
         if (imageLogoEnabled)
-            writeText(UartScreenVar.addr_icon_image_logo, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.PresetImage)});
+            writeText(UartScreenVar.addr_icon_image_logo, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.PresetImage)});
         else
-            writeText(UartScreenVar.addr_icon_image_logo, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Empty1)});
+            writeText(UartScreenVar.addr_icon_image_logo, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
         if (imageFullEnabled)
-            writeText(UartScreenVar.addr_icon_image_full, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.FullScreenImage)});
+            writeText(UartScreenVar.addr_icon_image_full, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.FullScreenImage)});
         else
-            writeText(UartScreenVar.addr_icon_image_full, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Empty1)});
+            writeText(UartScreenVar.addr_icon_image_full, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
 
     }
 
@@ -1392,7 +1376,7 @@ public class UartScreenControl
                     {
                         getPrinter().getGCodeControl().executeShutterOff();
                         ledBoardEnabled = false;
-                        writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Empty1)});
+                        writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
                     }
                 }, 40000);
             } else {
@@ -1424,9 +1408,9 @@ public class UartScreenControl
         }
 
         if (ledBoardEnabled)
-            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.LightSwitch)});
+            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.LightSwitch)});
         else
-            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), UartScreenVar.IconPos.Empty1)});
+            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
     }
 
     private void action_clear_trough(byte[] payload)
@@ -1478,8 +1462,8 @@ public class UartScreenControl
         else {
             writeText(UartScreenVar.addr_txt_ipAddress, String.format("%-16s", "").getBytes());
         }
-        String modelNumber = HostProperties.Instance().getModelNumber();
-        writeText(UartScreenVar.addr_txt_modelNumber, String.format("%-16s", modelNumber).getBytes());
+        //String modelNumber = HostProperties.Instance().getModelNumber();
+        writeText(UartScreenVar.addr_txt_modelNumber, String.format("%-16s", getModelNumber()).getBytes());
     }
 
     private void action_update_software(byte[] payload)

@@ -590,7 +590,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		if (aid.customizer.getNextStep() != PrinterStep.PerformExposure) {
 			return null;
 		}
-		
+		//logger.info("showImage:{derby}");
 		aid.printer.showImage(sliceImage); //derby add for insure the img is ready
 		
 		//Start but don't wait for a potentially heavy weight operation to determine if we are out of ink.
@@ -780,12 +780,9 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		
 		//Perform area and cost manipulations for current slice
 		aid.printJob.addNewSlice(System.currentTimeMillis() - aid.currentSliceTime, buildArea);
-		
 		//Notify the client that the printJob has increased the currentSlice
 		NotificationManager.jobChanged(aid.printer, aid.printJob);
-		
 		moveToNextPrinterStep(aid.customizer, PrinterStep.PerformPreSlice);
-		
 		return null;
 	}
 

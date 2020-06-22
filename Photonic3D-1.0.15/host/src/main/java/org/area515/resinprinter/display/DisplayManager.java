@@ -74,7 +74,7 @@ public class DisplayManager {
 		} catch (InappropriateDeviceException e) {
 			logger.error("Continuing after error...", e);
 		}
-		
+		//logger.info("derby debug:video device{}", devices);
 		devices.addAll(HostProperties.Instance().getDisplayDevices());
 		return devices;
 	}

@@ -34,8 +34,10 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 		Lock lock = aid.cache.getSpecificLock(imageIndexToBuild);
 		lock.lock();
 		try {
+			logger.info("rendering{}",imageIndexToBuild);
 			RenderedData imageData = aid.cache.getOrCreateIfMissing(imageIndexToBuild);
 			BufferedImage image = renderImage(imageData.getPreTransformedImage());
+			logger.info("rendering1");
 			imageData.setPreTransformedImage(image);
 			BufferedImage after = processor.applyImageTransforms(aid, image);
 			imageData.setPrintableImage(after);
@@ -50,6 +52,7 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 			throw new JobManagerException("Unable to render image", e);
 		} finally {
 			lock.unlock();
+			logger.info("rendering2");
 		}
 	}
 	
