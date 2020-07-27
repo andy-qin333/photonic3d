@@ -5,10 +5,8 @@ import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -20,7 +18,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.imageio.ImageIO;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
@@ -47,10 +44,6 @@ import org.area515.resinprinter.slice.StlError;
 import org.area515.util.Log4jTimer;
 import org.area515.util.TemplateEngine;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 
@@ -314,7 +307,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 //		}
 		
 //		 JsonObject subObject=jsonArray.get(i).getAsJsonObject();
-//需要fastjson.jar支持，放到lib目录中
+//
 		if (aid == null) {
 			throw new IllegalStateException("initializeDataAid must be called before this method");
 		}
@@ -591,7 +584,14 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 			return null;
 		}
 		//logger.info("showImage:{derby}");
-		aid.printer.showImage(sliceImage); //derby add for insure the img is ready
+		BufferedImage destImage = new BufferedImage(sliceImage.getWidth(), sliceImage.getHeight(), BufferedImage.TYPE_4BYTE_ABGR); 
+		int[] maskArray = new int[sliceImage.getWidth()*sliceImage.getHeight()/2];
+		int[] destArray = new int[sliceImage.getWidth()*sliceImage.getHeight()/2];
+		if(true){
+			destArray = sliceImage.getRGB(sliceImage.getWidth()/2, 0, sliceImage.getWidth()/2, sliceImage.getHeight(), destArray, 0, sliceImage.getWidth()/2);
+			destImage.setRGB(sliceImage.getWidth()/2, 0, sliceImage.getWidth()/2, sliceImage.getHeight(), destArray, 0, sliceImage.getWidth()/2);
+		}
+		aid.printer.showImage(destImage); //derby add for insure the img is ready
 		
 		//Start but don't wait for a potentially heavy weight operation to determine if we are out of ink.
 		if (aid.inkDetector != null) {
@@ -679,6 +679,51 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 			aid.printer.setShutterOpen(false);
 			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
 			aid.printer.stopExposureTiming();
+		}
+		
+		////add by derby for 13.3inch printer, show half Image and move the UVled
+		if(true) {
+			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, "G1 X150 F1000", false);
+			destArray = sliceImage.getRGB(0, 0, sliceImage.getWidth()/2, sliceImage.getHeight(), destArray, 0, sliceImage.getWidth()/2);
+			destImage.setRGB(sliceImage.getWidth()/2, 0, sliceImage.getWidth()/2, sliceImage.getHeight(), maskArray, 0, sliceImage.getWidth()/2);
+			destImage.setRGB(0, 0, sliceImage.getWidth()/2, sliceImage.getHeight(), destArray, 0, sliceImage.getWidth()/2);
+			aid.printer.showImage(destImage);
+			
+			 
+			//2019/11/13 derby add for synchronied UVLed time
+			state = aid.printer.getDisplayState();
+			while(state != DisplayState.Finished) {
+				Thread.sleep(10);
+				state = aid.printer.getDisplayState();
+			}
+			//2019/11/13 derby add for synchronied UVLed time
+			
+			if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {
+				aid.printer.setShutterOpen(true);
+				aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
+				aid.printer.startExposureTiming();
+			}
+			
+			//Sleep for the amount of time that we are exposing the resin.
+			// FIXME: 2017/11/6 zyd add for increase exposure time if the job has been paused -s
+			if (needPerformAfterPause)
+			{
+				if (aid.slicingProfile.getResumeLayerExposureTime() < aid.printJob.getExposureTime())
+					Thread.sleep(aid.printJob.getExposureTime());
+				else
+					Thread.sleep(aid.slicingProfile.getResumeLayerExposureTime());
+			}
+			else
+				Thread.sleep(aid.printJob.getExposureTime());
+			// FIXME: 2017/11/6 zyd add for increase exposure time if the job has been paused -e
+			
+			if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {
+				aid.printer.setShutterOpen(false);
+				aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
+				aid.printer.stopExposureTiming();
+			}
+			
+			//aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, "G1 X30 F1000", false); derby 2020-7-24 与平台抬升同时移动,在抬升脚本中改动
 		}
 
 		//Blank the screen

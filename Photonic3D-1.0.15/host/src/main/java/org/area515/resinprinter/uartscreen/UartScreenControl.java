@@ -1,19 +1,5 @@
 package org.area515.resinprinter.uartscreen;
 
-import org.area515.resinprinter.job.JobStatus;
-import org.area515.resinprinter.job.PrintJob;
-import org.area515.resinprinter.network.WirelessNetwork;
-import org.area515.resinprinter.printer.ParameterRecord;
-import org.area515.resinprinter.printer.Printer;
-import org.area515.resinprinter.server.HostProperties;
-import org.area515.resinprinter.server.Main;
-import org.area515.resinprinter.services.MachineService;
-import org.area515.resinprinter.services.PrintableService;
-import org.area515.resinprinter.services.PrinterService;
-import org.area515.util.BasicUtillities;
-import org.area515.util.IOUtilities;
-import org.area515.resinprinter.printer.Language;
-
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +16,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
+
+import org.area515.resinprinter.job.JobStatus;
+import org.area515.resinprinter.job.PrintJob;
+import org.area515.resinprinter.network.WirelessNetwork;
+import org.area515.resinprinter.printer.Language;
+import org.area515.resinprinter.printer.ParameterRecord;
+import org.area515.resinprinter.printer.Printer;
+import org.area515.resinprinter.server.HostProperties;
+import org.area515.resinprinter.server.Main;
+import org.area515.resinprinter.services.MachineService;
+import org.area515.resinprinter.services.PrintableService;
+import org.area515.resinprinter.services.PrinterService;
+import org.area515.util.BasicUtillities;
+import org.area515.util.IOUtilities;
 
 /**
  * Created by zyd on 2017/8/10.

@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -14,14 +13,11 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.area515.resinprinter.exception.SliceHandlingException;
-import org.area515.resinprinter.job.AbstractPrintFileProcessor.DataAid;
 import org.area515.resinprinter.job.render.RenderedData;
 import org.area515.resinprinter.notification.NotificationManager;
 import org.area515.resinprinter.server.HostProperties;
@@ -30,13 +26,6 @@ import org.area515.resinprinter.twodim.GraphicsMagickRender;
 import org.area515.resinprinter.twodim.SVGImageRender;
 import org.area515.resinprinter.twodim.SimpleImageRenderer;
 
-import com.alibaba.fastjson.JSON;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import se.sawano.java.text.AlphanumericComparator;
 
 
@@ -85,9 +74,9 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 //			com.alibaba.fastjson.JSONArray jsonArray = jobj.getJSONArray("layers");
 			
 //			JSONArray jsonArray = JSONArray.fromObject(JsonContext);
-//			JsonParser parse =new JsonParser();  //创建json解析器
-//			JsonObject json=(JsonObject) parse.parse(new FileReader(jsonFile));  //创建jsonObject对象
-//			JsonArray jsonArray=json.get("layers").getAsJsonArray();    //得到为json的数组
+//			JsonParser parse =new JsonParser();  //鍒涘缓json瑙ｆ瀽鍣�
+//			JsonObject json=(JsonObject) parse.parse(new FileReader(jsonFile));  //鍒涘缓jsonObject瀵硅薄
+//			JsonArray jsonArray=json.get("layers").getAsJsonArray();    //寰楀埌涓簀son鐨勬暟缁�
 			
 			printJob.setTotalSlices(imageFiles.size());
 
@@ -164,7 +153,7 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 				//		Thread.sleep(300);
 				//		logger.info("waiting for render");
 				//	}
-					RenderedData imageData = prepareImage.get(); //derby 6-10 造成假死现象（真实原因是串口屏的硬件没连接，直接删除配置，导致了问题随机发生）
+					RenderedData imageData = prepareImage.get(); //derby 6-10 閫犳垚鍋囨鐜拌薄锛堢湡瀹炲師鍥犳槸涓插彛灞忕殑纭欢娌¤繛鎺ワ紝鐩存帴鍒犻櫎閰嶇疆锛屽鑷翠簡闂闅忔満鍙戠敓锛�
 				
 					dataAid.cache.setCurrentRenderingPointer(imageFile);
 					if (imgIter.hasNext()) {
@@ -192,7 +181,7 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 					if (status != null) {
 						break;
 					}
-					logger.info("test5");
+					//logger.info("test5");
 				} while (slicePending);
 			}
 			return performFooter(dataAid);
