@@ -1,19 +1,5 @@
 package org.area515.resinprinter.uartscreen;
 
-import org.area515.resinprinter.job.JobStatus;
-import org.area515.resinprinter.job.PrintJob;
-import org.area515.resinprinter.network.WirelessNetwork;
-import org.area515.resinprinter.printer.ParameterRecord;
-import org.area515.resinprinter.printer.Printer;
-import org.area515.resinprinter.server.HostProperties;
-import org.area515.resinprinter.server.Main;
-import org.area515.resinprinter.services.MachineService;
-import org.area515.resinprinter.services.PrintableService;
-import org.area515.resinprinter.services.PrinterService;
-import org.area515.util.BasicUtillities;
-import org.area515.util.IOUtilities;
-import org.area515.resinprinter.printer.Language;
-
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +16,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
+
+import org.area515.resinprinter.job.JobStatus;
+import org.area515.resinprinter.job.PrintJob;
+import org.area515.resinprinter.network.WirelessNetwork;
+import org.area515.resinprinter.printer.Language;
+import org.area515.resinprinter.printer.ParameterRecord;
+import org.area515.resinprinter.printer.Printer;
+import org.area515.resinprinter.server.HostProperties;
+import org.area515.resinprinter.server.Main;
+import org.area515.resinprinter.services.MachineService;
+import org.area515.resinprinter.services.PrintableService;
+import org.area515.resinprinter.services.PrinterService;
+import org.area515.util.BasicUtillities;
+import org.area515.util.IOUtilities;
 
 /**
  * Created by zyd on 2017/8/10.
@@ -357,9 +357,9 @@ public class UartScreenControl
     {
         try {
             if (status == JobStatus.ErrorScreen)
-                writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", new String(new char[] {0x5C4F, 0x5E55, 0x9519, 0x8BEF})).getBytes("GBK"));//灞忓箷閿欒
+                writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", new String(new char[] {0x5C4F, 0x5E55, 0x9519, 0x8BEF})).getBytes("GBK"));//鐏炲繐绠烽柨娆掝嚖
             else if (status == JobStatus.ErrorControlBoard)
-                writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", new String(new char[] {0x63A7, 0x5236, 0x7248, 0x9519, 0x8BEF})).getBytes("GBK"));//鎺у埗鏉块敊璇�
+                writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", new String(new char[] {0x63A7, 0x5236, 0x7248, 0x9519, 0x8BEF})).getBytes("GBK"));//閹貉冨煑閺夊潡鏁婄拠锟�
             while (!writeQueue.isEmpty())
                 Thread.sleep(100);
         }
@@ -1003,22 +1003,22 @@ public class UartScreenControl
        	 	fileCnt = 5;
         int key_value = payload[8];
 
-        if(key_value >= 0x00 && key_value <= 0x04) //鏂囦欢閫夋嫨
+        if(key_value >= 0x00 && key_value <= 0x04) //閺傚洣娆㈤柅澶嬪
             filesUpdate(cur_file_dir, key_value+cur_file_page*fileCnt);
-        else if (key_value == 0x05) //鏈湴鏂囦欢
+        else if (key_value == 0x05) //閺堫剙婀撮弬鍥︽
             filesUpdate("local", 0);
-        else if (key_value == 0x06) //U鐩樻枃浠�
+        else if (key_value == 0x06) //U閻╂ɑ鏋冩禒锟�
             filesUpdate("udisk", 0);
-        else if (key_value == 0x07) //向下翻页
+        else if (key_value == 0x07) //鍚戜笅缈婚〉
             filesUpdate(cur_file_dir, cur_file_selected-fileCnt);
-        else if (key_value == 0x08) //向上翻页
+        else if (key_value == 0x08) //鍚戜笂缈婚〉
             filesUpdate(cur_file_dir, cur_file_selected+fileCnt );
         else if (key_value == 0x09) { 
             if (getPrinter().getStatus().isPrintInProgress())
                 return;
             fileDelete();
         }
-        else if (key_value == 0x0A) { //鏂囦欢鍒犻櫎
+        else if (key_value == 0x0A) { //閺傚洣娆㈤崚鐘绘珟
             if (getPrinter().getStatus().isPrintInProgress())
                 return;
             fileCopy();
@@ -1083,10 +1083,10 @@ public class UartScreenControl
         int key_value;
         key_value = payload[8];
 
-        if (key_value == 0x00) { //璇诲彇鍙傛暟
+        if (key_value == 0x00) { //鐠囪褰囬崣鍌涙殶
             readParameters();
         }
-        else if (key_value == 0x01) { //淇濆瓨鍙傛暟
+        else if (key_value == 0x01) { //娣囨繂鐡ㄩ崣鍌涙殶
             if (getPrinter().getStatus().isPrintInProgress()) {
                 writeKey((byte)0xF2);
                 return;
@@ -1155,11 +1155,11 @@ public class UartScreenControl
         key_value = payload[8];
 
         ParameterRecord parameterRecord = HostProperties.Instance().getParameterRecord();
-        if (key_value == 0x01)	//中文
+        if (key_value == 0x01)	//涓枃
             parameterRecord.setLanguage(0);  
         else if (key_value == 0x02) 
-        	parameterRecord.setLanguage(1);//英文
-        else if (key_value == 0x03)	//俄文
+        	parameterRecord.setLanguage(1);//鑻辨枃
+        else if (key_value == 0x03)	//淇勬枃
             parameterRecord.setLanguage(3);
         else
         	return;
@@ -1180,28 +1180,30 @@ public class UartScreenControl
         key_value = payload[8];
 
         if (key_value == 0x01) {
-            //Z杞翠笂绉�
+            //Z鏉炵繝绗傜粔锟�
             getPrinter().getGCodeControl().executeSetRelativePositioning();
             getPrinter().getGCodeControl().sendGcode("G1 Z1 F1000");
             getPrinter().getGCodeControl().executeSetAbsolutePositioning();
         }
         else if (key_value == 0x02) {
-            //Z杞翠笅绉�
+            //Z鏉炵繝绗呯粔锟�
             getPrinter().getGCodeControl().executeSetRelativePositioning();
             getPrinter().getGCodeControl().sendGcode("G1 Z-1 F1000");
             getPrinter().getGCodeControl().executeSetAbsolutePositioning();
         }
         else if (key_value == 0x03) {
-            //Z杞村綊闆�
+            //Z鏉炴潙缍婇梿锟�
             getPrinter().getGCodeControl().executeZHome();
         }
         else if (key_value == 0x04) {
-            //Z杞翠笂绉诲埌椤堕儴
+            //Z鏉炵繝绗傜粔璇插煂妞ゅ爼鍎�
             getPrinter().getGCodeControl().executeSetAbsolutePositioning();
-            getPrinter().getGCodeControl().sendGcode("G1 Z140 F1000");
+            int zTravel = getPrinter().getConfiguration().getSlicingProfile().getZTravel();
+            String gCode = String.format("G1 Z%d F1000", zTravel);
+            getPrinter().getGCodeControl().sendGcode(gCode);
         }
         else if (key_value == 0x05) {
-            //Z杞翠笅绉诲埌搴曢儴
+            //Z鏉炵繝绗呯粔璇插煂鎼存洟鍎�
             getPrinter().getGCodeControl().executeSetAbsolutePositioning();
             getPrinter().getGCodeControl().sendGcode("G1 Z0 F1000");
         }
@@ -1220,7 +1222,7 @@ public class UartScreenControl
         key_value = payload[8];
 
         if (key_value == 0x00) {
-            //杩涘叆鎺у埗椤�
+            //鏉╂稑鍙嗛幒褍鍩楁い锟�
             double temperature = 0;
             String receive = getPrinter().getGCodeControl().executeQueryTemperature();
             Pattern GCODE_Temperature_PATTERN = Pattern.compile("\\s*T:\\s*(-?[\\d\\.]+).*B:(-?[\\d\\.]+).*");
@@ -1230,7 +1232,7 @@ public class UartScreenControl
             }
             writeText(UartScreenVar.addr_txt_led_temperature, String.format("%-16s", String.format("%.1f", temperature)).getBytes());
         } else if (key_value == 0x01) {
-            //鐏澘寮�鍏�
+            //閻忣垱婢樺锟介崗锟�
             if (!ledBoardEnabled) {
                 getPrinter().getGCodeControl().executeShutterOn();
                 ledBoardEnabled = true;
@@ -1258,7 +1260,7 @@ public class UartScreenControl
                 ledBoardEnabled = false;
             }
         } else if (key_value == 0x02) {
-            //姘村喎寮�鍏�
+            //濮樻潙鍠庡锟介崗锟�
             if (!waterPumpEnabled) {
                 getPrinter().getGCodeControl().executeWaterPumpOn();
                 waterPumpEnabled = true;
@@ -1267,7 +1269,7 @@ public class UartScreenControl
                 waterPumpEnabled = false;
             }
         } else if (key_value == 0x03) {
-            //棰勭疆鍥惧儚
+            //妫板嫮鐤嗛崶鎯у剼
             if (!imageLogoEnabled) {
                 showImage("/opt/cwh/3DTALK.png");
                 imageLogoEnabled = true;
@@ -1277,7 +1279,7 @@ public class UartScreenControl
                 imageLogoEnabled = false;
             }
         } else if (key_value == 0x04) {
-            //鍏ㄥ睆鐧借壊
+            //閸忋劌鐫嗛惂鍊熷
             if (!imageFullEnabled) {
                 showImage("/opt/cwh/WHITE.png");
                 imageFullEnabled = true;
@@ -1287,7 +1289,7 @@ public class UartScreenControl
                 imageFullEnabled = false;
             }
         } else {
-            //閫�鍑洪〉闈�
+            //闁拷閸戞椽銆夐棃锟�
             if (shutterTimer != null) {
                 shutterTimer.cancel();
                 shutterTimer = null;
@@ -1356,11 +1358,11 @@ public class UartScreenControl
         key_value = payload[8];
 
         if (key_value == 0x00) {
-            //进入灯板校准
+            //杩涘叆鐏澘鏍″噯
             ledPwmValue = new Integer(getPrinter().getGCodeControl().executeReadLedPwmValue());
             writeText(UartScreenVar.addr_txt_led_pwm, new byte[]{(byte) ((ledPwmValue >> 8) & 0xFF), (byte) (ledPwmValue & 0xFF)});
         } else if (key_value == 0x01) {
-            //灯板开关
+            //鐏澘寮�鍏�
             if (!ledBoardEnabled) {
                 getPrinter().getGCodeControl().executeShutterOn();
                 ledBoardEnabled = true;
@@ -1387,11 +1389,11 @@ public class UartScreenControl
                 getPrinter().getGCodeControl().executeShutterOff();
                 ledBoardEnabled = false;
             }
-        } else if (key_value == 0x02) //淇濆瓨鐏澘寮哄害
+        } else if (key_value == 0x02) //娣囨繂鐡ㄩ悘顖涙緲瀵搫瀹�
         {
             getPrinter().getGCodeControl().executeWriteLedPwmValue(ledPwmValue);
             writeKey((byte) 0xF1);
-        } else //閫�鍑虹晫闈�
+        } else //闁拷閸戣櫣鏅棃锟�
         {
             if (shutterTimer != null) {
                 shutterTimer.cancel();
