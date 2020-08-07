@@ -376,12 +376,18 @@ public class IOUtilities {
 		Process listSSIDProcess = null;
 		try {
 			String[] replacedCommands = new String[commands.length];
+			String cmdInfo = "";
 			for (int t = 0; t < commands.length; t++) {
 				replacedCommands[t] = MessageFormat.format(commands[t], (Object[])arguments);
+				
 			}
+			cmdInfo = String.join(",", replacedCommands);
+			logger.info(cmdInfo);
 			listSSIDProcess = Runtime.getRuntime().exec(replacedCommands);
+			
 			ByteArrayOutputStream output = new ByteArrayOutputStream();
 			IOUtils.copy(listSSIDProcess.getInputStream(), output);
+			logger.info(output.toString());
 			return new String(output.toString()).split("\r?\n");
 		} catch (IOException e) {
 			if (friendlyErrorMessage == null) {

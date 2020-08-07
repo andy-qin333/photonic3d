@@ -96,8 +96,9 @@ public class LinuxNetworkManager implements NetworkManager {
 	@Override
 	public List<NetInterface> getNetworkInterfaces() {
 		List<NetInterface> ifaces = new ArrayList<NetInterface>();
-		String[] nics = IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "ifconfig | grep ''Link encap'' | awk '''{ print $1 }'''"}, null);
-		
+		//String[] nics = IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "ifconfig | grep ''Link encap'' | awk '''{ print $1 }'''"}, null);
+		//modify by derby 2020-8-6 support the pi4 ifconfig to return nic names; adept the earlier os 
+		String[] nics = IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "ifconfig | cut -d ' ' -f1| tr ':' '\\n' | awk NF"}, null);
 		for (String nicName : nics) {
 			NetInterface netFace = new NetInterface();
 			netFace.setName(nicName);
