@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.4.28";  //derby on 2019-11-19
+    private String version = "0.4.29";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -603,6 +603,7 @@ public class UartScreenControl
         else
             cur_network_page = cur_network_selected / 5;
 
+        System.out.println("list networks");
         for (int i = 0; i < 5; i++) {
             network = "";
             if (network_list != null && network_list.size() > i + cur_network_page * 5) {
@@ -610,6 +611,7 @@ public class UartScreenControl
             }
             try {
                 writeText(UartScreenVar.addr_txt_network_List[i], String.format("%-32s", network).getBytes("UTF-16BE"));
+                System.out.println(network);
             }
             catch (UnsupportedEncodingException e) {
                 System.out.println(e.toString());
@@ -1155,11 +1157,11 @@ public class UartScreenControl
         key_value = payload[8];
 
         ParameterRecord parameterRecord = HostProperties.Instance().getParameterRecord();
-        if (key_value == 0x01)	//涓枃
+        if (key_value == 0x01)	//set to CN
             parameterRecord.setLanguage(0);  
-        else if (key_value == 0x02) 
-        	parameterRecord.setLanguage(1);//鑻辨枃
-        else if (key_value == 0x03)	//淇勬枃
+        else if (key_value == 0x02) //set to EN
+        	parameterRecord.setLanguage(1);
+        else if (key_value == 0x03)	//TBD
             parameterRecord.setLanguage(3);
         else
         	return;
