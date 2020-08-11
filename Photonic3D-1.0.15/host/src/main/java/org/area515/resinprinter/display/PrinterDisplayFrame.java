@@ -66,6 +66,13 @@ public class PrinterDisplayFrame extends JFrame implements GraphicsOutputInterfa
 		case Blank :
 			g2.setBackground(Color.black);
 			g2.clearRect(0, 0, screenSize.width, screenSize.height);
+			displayState = DisplayState.Finished;
+			logger.debug("Blank realized:{}", () -> Log4jTimer.completeGlobalTimer(IMAGE_REALIZE_TIMER));
+			return;
+		case White :
+			g2.setBackground(Color.white);
+			g2.clearRect(0, 0, screenSize.width, screenSize.height);
+			displayState = DisplayState.Finished;
 			logger.debug("Blank realized:{}", () -> Log4jTimer.completeGlobalTimer(IMAGE_REALIZE_TIMER));
 			return;
 		case Grid :
@@ -97,6 +104,12 @@ public class PrinterDisplayFrame extends JFrame implements GraphicsOutputInterfa
 	public void showBlankImage() {
 		logger.debug("Blank assigned:{}", () -> Log4jTimer.startGlobalTimer(IMAGE_REALIZE_TIMER));
 		setDisplayState(DisplayState.Blank);	
+		repaint();
+	}
+	
+	public void showWhiteImage() {
+		logger.debug("Blank assigned:{}", () -> Log4jTimer.startGlobalTimer(IMAGE_REALIZE_TIMER));
+		setDisplayState(DisplayState.White);	
 		repaint();
 	}
 	

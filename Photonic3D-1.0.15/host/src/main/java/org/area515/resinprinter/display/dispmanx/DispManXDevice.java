@@ -181,6 +181,10 @@ public class DispManXDevice implements GraphicsOutputInterface {
 		initializeScreen();
 		removeAllElementsFromScreen();
 	}
+	public void showWhiteImage() {
+		initializeScreen();
+		removeAllElementsFromScreen();
+	}
 
 	private void removeAllElementsFromScreen() {
 		logger.info("screen cleanup started");

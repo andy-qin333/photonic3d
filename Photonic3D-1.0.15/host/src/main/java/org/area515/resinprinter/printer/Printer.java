@@ -67,6 +67,7 @@ public class Printer {
 		Calibration,
 		Grid,
 		Blank,
+		White,
 		CurrentSlice,
 		Finished  ///derby add for synchronized the UVLed time  2019/11/13
 	}
@@ -212,6 +213,10 @@ public class Printer {
 	
 	public void showBlankImage() {	
 		refreshFrame.showBlankImage();
+	}
+	
+	public void showWhiteImage() {	
+		refreshFrame.showWhiteImage();
 	}
 	
 	public void showCalibrationImage(int xPixels, int yPixels) {

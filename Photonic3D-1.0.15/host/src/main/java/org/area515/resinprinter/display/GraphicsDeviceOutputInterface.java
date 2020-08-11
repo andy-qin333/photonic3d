@@ -58,6 +58,9 @@ public class GraphicsDeviceOutputInterface implements GraphicsOutputInterface {
 	public void showBlankImage() {
 		throw new IllegalStateException("You should never call showBlankImage from this class");
 	}
+	public void showWhiteImage() {
+		throw new IllegalStateException("You should never call showBlankImage from this class");
+	}
 
 	@Override
 	public void showCalibrationImage(int xPixels, int yPixels) {

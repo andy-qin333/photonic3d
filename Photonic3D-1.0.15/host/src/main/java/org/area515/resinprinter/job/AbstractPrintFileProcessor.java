@@ -683,7 +683,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 
 		//Blank the screen
 		aid.printer.showBlankImage();
-
+		aid.printer.showWhiteImage();
 		// FIXME: 2017/9/15 zyd add for set delay time -s
 		if (aid.slicingProfile.getDelayTimeAfterSolidify() > 0)
 		{
@@ -720,7 +720,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		// FIXME: 2017/9/25 zyd add for parameter -e
 		//Perform the lift feed gcode manipulation
 		aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeLiftFeed(), false);
-
+		
 		needPerformAfterPause = false;
 		while (true)
 		{
@@ -771,7 +771,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		//Perform the lift retract gcode manipulation
 		aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeLiftRetract(), false);
 		// FIXME: 2017/9/18 zyd add for move z to min position as print job paused -e
-
+		
 		Double buildArea = getBuildAreaMM(aid.printJob);
 		// Log slice settings (in JSON for extraction and processing)
 		logger.info("{ \"layer\": {}, \"exposureTime\": {}, \"liftDistance\": {}, \"liftFeedSpeed\": {} , \"liftRetractSpeed\": {} , \"layerAreaMM2\": {} }",

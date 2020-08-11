@@ -12,6 +12,7 @@ public interface GraphicsOutputInterface {
 	public void resetSliceCount();
 	public void dispose();
 	public void showBlankImage();
+	public void showWhiteImage();
 	public void showCalibrationImage(int xPixels, int yPixels);
 	public void showGridImage(int pixels);
 	public void showImage(BufferedImage image);
