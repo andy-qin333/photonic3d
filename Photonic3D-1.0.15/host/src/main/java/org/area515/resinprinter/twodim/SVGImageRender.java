@@ -16,12 +16,15 @@ import org.area515.resinprinter.job.render.CurrentImageRenderer;
 import org.area515.resinprinter.printer.SlicingProfile;
 
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.print.PrinterJob;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 /**
  * Created by zyd on 2017/10/12.
@@ -76,6 +79,8 @@ public class SVGImageRender extends CurrentImageRenderer
                 };
                 trans.setTranscodingHints(transcoderHints);
                 trans.transcode(input, null);
+                //File outputfile = new File("derby-test.jpg");
+                //ImageIO.write(imagePointer[0], "jpg", outputfile);
             }
             catch (TranscoderException ex)
             {

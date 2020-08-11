@@ -137,6 +137,7 @@ public class CustomizerService {
 		
 		AbstractPrintFileProcessor previewableProcessor = (AbstractPrintFileProcessor) processor;
 		BufferedImage img = previewableProcessor.buildPreviewSlice(customizer, file, (Previewable)processor);
+		//modify the pixel from 1440 -> 720
 		printer.setStatus(printer.getStatus());//This is to make sure the slicenumber is reset.
 		printer.showImage(img);
 	}

@@ -39,6 +39,7 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 			BufferedImage image = renderImage(imageData.getPreTransformedImage());
 			logger.info("rendering1");
 			imageData.setPreTransformedImage(image);
+			aid.customizer.getAffineTransformSettings().setXScale(0.333333333); //test for DF200-monoLCD
 			BufferedImage after = processor.applyImageTransforms(aid, image);
 			imageData.setPrintableImage(after);
 			if (!aid.optimizeWithPreviewMode) {
