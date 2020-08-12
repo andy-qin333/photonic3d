@@ -64,13 +64,13 @@ public class SVGImageRender extends CurrentImageRenderer
                     @Override
                     public BufferedImage createImage(int w, int h)
                     {
-                        return new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
+                        return new BufferedImage(w, h, BufferedImage.TYPE_3BYTE_BGR);
                     }
 
                     @Override
                     public void writeImage(BufferedImage image, TranscoderOutput out) throws TranscoderException
                     {
-                        BufferedImage image1 = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+                        BufferedImage image1 = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
                         Graphics2D graphics2D = image1.createGraphics();
                         graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                         graphics2D.drawImage(image, null, 0, 0);
@@ -79,14 +79,33 @@ public class SVGImageRender extends CurrentImageRenderer
                 };
                 trans.setTranscodingHints(transcoderHints);
                 trans.transcode(input, null);
-                //File outputfile = new File("derby-test.jpg");
-                //ImageIO.write(imagePointer[0], "jpg", outputfile);
+                
+//                File outputfile = new File("derby-test.png");
+//                ImageIO.write(imagePointer[0], "png", outputfile);
+              //created by derby 8-12, support the monoLCD, 1 pixel(RGB) control->3 pixel
+                BufferedImage monoImage = new BufferedImage(aid.xResolution/3, aid.yResolution, BufferedImage.TYPE_3BYTE_BGR);
+                for(int i = 0; i < monoImage.getHeight(); i++) {
+                	for(int j = 0; j < monoImage.getWidth(); j++) {
+                		int pix0 = imagePointer[0].getRGB(j*3, i);
+                		int pix1 = imagePointer[0].getRGB(j*3+1,i );
+                		int pix2 = imagePointer[0].getRGB(j*3+2,i );
+                		pix0 = pix0&0x00FF0000;
+                		pix1 = pix1&0x0000FF00;
+                		pix2 = pix2&0x000000FF;
+                		int monoPix = pix0 + pix1 + pix2;
+                		monoPix = monoPix + 0xFF000000;
+                		monoImage.setRGB(j, i, monoPix);
+                	}
+                }
+                imagePointer[0] = monoImage;
+                //outputfile = new File("derby-test-mono.png"); //derby8-12 png 图片在photoshop中可以像素对应，便于调试
+                //ImageIO.write(imagePointer[0], "png", outputfile);
             }
             catch (TranscoderException ex)
             {
                 throw new IOException(imageIndexToBuild + " doesn't seem to be an SVG file.");
             }
-
+            
             return imagePointer[0];
         }
         catch (IOException e)
