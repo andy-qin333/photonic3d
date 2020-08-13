@@ -89,17 +89,17 @@ public class SVGImageRender extends CurrentImageRenderer
                 		int pix0 = imagePointer[0].getRGB(j*3, i);
                 		int pix1 = imagePointer[0].getRGB(j*3+1,i );
                 		int pix2 = imagePointer[0].getRGB(j*3+2,i );
-                		pix0 = pix0&0x00FF0000;
+                		pix0 = pix0&0x000000FF;
                 		pix1 = pix1&0x0000FF00;
-                		pix2 = pix2&0x000000FF;
+                		pix2 = pix2&0x00FF0000;
                 		int monoPix = pix0 + pix1 + pix2;
                 		monoPix = monoPix + 0xFF000000;
                 		monoImage.setRGB(j, i, monoPix);
                 	}
                 }
                 imagePointer[0] = monoImage;
-                //outputfile = new File("derby-test-mono.png"); //derby8-12 png 图片在photoshop中可以像素对应，便于调试
-                //ImageIO.write(imagePointer[0], "png", outputfile);
+//                outputfile = new File("derby-test-mono.png"); //derby8-12 png 图片在photoshop中可以像素对应，便于调试
+//                ImageIO.write(imagePointer[0], "png", outputfile);
             }
             catch (TranscoderException ex)
             {
