@@ -86,9 +86,9 @@ public class SVGImageRender extends CurrentImageRenderer
                 BufferedImage monoImage = new BufferedImage(aid.xResolution/3, aid.yResolution, BufferedImage.TYPE_3BYTE_BGR);
                 for(int i = 0; i < monoImage.getHeight(); i++) {
                 	for(int j = 0; j < monoImage.getWidth(); j++) {
-                		int pix0 = imagePointer[0].getRGB(j*3, i);
+                		int pix0 = imagePointer[0].getRGB(j*3+2, i);
                 		int pix1 = imagePointer[0].getRGB(j*3+1,i );
-                		int pix2 = imagePointer[0].getRGB(j*3+2,i );
+                		int pix2 = imagePointer[0].getRGB(j*3,i );
                 		pix0 = pix0&0x000000FF;
                 		pix1 = pix1&0x0000FF00;
                 		pix2 = pix2&0x00FF0000;
