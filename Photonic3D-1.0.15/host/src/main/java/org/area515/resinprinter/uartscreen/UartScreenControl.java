@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.4.29B2";  //derby on 2019-11-19
+    private String version = "0.4.30";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -81,7 +81,7 @@ public class UartScreenControl
     private int ledPwmValue = 0;
 
     private String update_path = "/udiskdir/update-dlp";
-//    private String update_path = "C:\\Users\\zyd\\udiskdir\\update-dlp";
+//    private String update_path = "C:\\Users\\derby\\udiskdir\\update-dlp";
     private Timer shutterTimer;
 
 
@@ -1485,6 +1485,7 @@ public class UartScreenControl
                 @Override
                 public void run()
                 {
+                	System.out.println("entering update softwware..");
                     if (check_updatable() && HostProperties.Instance().isEnableUpdate()) {
                         close();
                         start_update();
@@ -1567,14 +1568,20 @@ public class UartScreenControl
         try {
             if (!BasicUtillities.isExists(dgus_path) ||
                     !BasicUtillities.isExists(filesystem_path) ||
-                    !BasicUtillities.isExists(version_path))
-                return false;
+                    !BasicUtillities.isExists(version_path)) {
+            	System.out.println("no update files found!");
+            	return false;
+            }
+                
 
             String version_string = BasicUtillities.readAll(version_path);
             String old_version = version.replace(".", "");
             String new_version = version_string.replace(".", "");
-            if (Integer.parseInt(old_version) >= Integer.parseInt(new_version))
-                return false;
+            if (Integer.parseInt(old_version) >= Integer.parseInt(new_version)) {
+            	System.out.println("ver old!");
+            	return false;
+            }
+                
         }
         catch (Exception e) {
             System.out.println(e.toString());
