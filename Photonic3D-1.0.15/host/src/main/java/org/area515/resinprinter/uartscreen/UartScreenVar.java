@@ -30,6 +30,7 @@ public class UartScreenVar
     static final char addr_icon_image_logo = 0x0132;
     static final char addr_icon_image_full = 0x0133;
     static final char addr_icon_printProgress = 0x0143; //add by derby 2020/1/14
+    static final char addr_icon_printProgress_ex = 0x0142; //add by derby 2020/9/24 for ds300
     static final char addr_icon_lifetime_led = 0x0140; //add by derby 2020/1/14
     static final char addr_icon_lifetime_screen = 0x0141; //add by derby 2020/1/14
     //add by derby 2020/2/18 {hour_H，hour_L,min_H,min_L,sec_H,sec_L}
