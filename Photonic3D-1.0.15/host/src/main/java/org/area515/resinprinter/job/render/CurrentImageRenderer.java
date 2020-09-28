@@ -1,5 +1,6 @@
 package org.area515.resinprinter.job.render;
 
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.util.concurrent.Callable;
@@ -41,6 +42,9 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 			imageData.setPreTransformedImage(image);
 			BufferedImage after = processor.applyImageTransforms(aid, image);
 			imageData.setPrintableImage(after);
+			//////add by derby9-27 for ds300
+			splitImage(after, imageData);
+			///////add by derby
 			if (!aid.optimizeWithPreviewMode) {
 				long pixelArea = computePixelArea(image);
 				imageData.setArea((double)pixelArea);
@@ -121,4 +125,39 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 		
 		return area;
 	}
+	///////////////add by derby9-27 for ds300
+	//////////////split the image/////////////////
+	private void splitImage(BufferedImage image, RenderedData imageData) {
+//		BufferedImage destImage1 = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_4BYTE_ABGR); 
+//		int[] maskArray = new int[image.getWidth()*image.getHeight()/2];
+//		int[] destArray = new int[image.getWidth()*image.getHeight()/2];
+//		destArray = image.getRGB(image.getWidth()/2, 0, image.getWidth()/2, image.getHeight(), destArray, 0, image.getWidth()/2);
+//		destImage1.setRGB(image.getWidth()/2, 0, image.getWidth()/2, image.getHeight(), destArray, 0, image.getWidth()/2);
+//		imageData.setPrintableImage(destImage1);
+//		BufferedImage destImage2 = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_4BYTE_ABGR); 
+//		destArray = image.getRGB(0, 0, image.getWidth()/2, image.getHeight(), destArray, 0, image.getWidth()/2);
+//		destImage2.setRGB(image.getWidth()/2, 0, image.getWidth()/2, image.getHeight(), maskArray, 0, image.getWidth()/2);
+//		destImage2.setRGB(0, 0, image.getWidth()/2, image.getHeight(), destArray, 0, image.getWidth()/2);
+//		imageData.setRemainImage(destImage2);
+		
+		///////speed the pixel operate//////
+		////计算时间超长 造成等待
+		BufferedImage destImage1 = deepCopy(image);
+		int[] maskArray = new int[image.getWidth()*image.getHeight()/2];
+		destImage1.setRGB(image.getWidth()/2+1, 0, image.getWidth()/2-1, image.getHeight(), maskArray, 0, image.getWidth()/2-1);
+		imageData.setSplitImage1(destImage1);
+		BufferedImage destImage2 = deepCopy(image);
+		destImage2.setRGB(0, 0, image.getWidth()/2, image.getHeight(), maskArray, 0, image.getWidth()/2);
+		imageData.setSplitImage2(destImage2);
+	}
+	
+	private BufferedImage deepCopy(BufferedImage srcImage) {
+		BufferedImage b = new BufferedImage(srcImage.getWidth(), srcImage.getHeight(), srcImage.getType());
+	    Graphics g = b.getGraphics();
+	    g.drawImage(srcImage, 0, 0, null);
+	    g.dispose();
+	    return b;
+	}
 }
+
+

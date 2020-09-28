@@ -104,6 +104,7 @@ public class STLFileProcessor extends AbstractPrintFileProcessor<Iterator<Triang
 				
 				//Performs all of the duties that are common to most print files
 				status = printImageAndPerformPostProcessing(dataAid, image);
+				
 				if (status != null) {
 					return status;
 				}

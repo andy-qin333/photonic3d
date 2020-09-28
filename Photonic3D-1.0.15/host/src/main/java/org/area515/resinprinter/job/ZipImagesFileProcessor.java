@@ -176,7 +176,8 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 						slicePending = false;
 					}
 					
-					status = printImageAndPerformPostProcessing(dataAid, imageData.getPrintableImage());
+					//status = printImageAndPerformPostProcessing(dataAid, imageData.getPrintableImage());
+					status = printImageAndPerformPostProcessing(dataAid, imageData);
 					
 					if (status != null) {
 						break;
