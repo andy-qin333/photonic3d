@@ -38,7 +38,7 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 			logger.info("rendering{}",imageIndexToBuild);
 			RenderedData imageData = aid.cache.getOrCreateIfMissing(imageIndexToBuild);
 			BufferedImage image = renderImage(imageData.getPreTransformedImage());
-			logger.info("rendering1");
+			//logger.info("rendering1");
 			imageData.setPreTransformedImage(image);
 			BufferedImage after = processor.applyImageTransforms(aid, image);
 			imageData.setPrintableImage(after);
@@ -46,9 +46,9 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 			splitImage(after, imageData);
 			///////add by derby
 			if (!aid.optimizeWithPreviewMode) {
-				long pixelArea = computePixelArea(image);
-				imageData.setArea((double)pixelArea);
-				logger.info("Loaded {} with {} non-black pixels in {}ms", imageIndexToBuild, pixelArea, System.currentTimeMillis()-startTime);
+				//long pixelArea = computePixelArea(image);
+				//imageData.setArea((double)pixelArea);
+				logger.info("Loaded {} with {} non-black pixels in {}ms", imageIndexToBuild, 1, System.currentTimeMillis()-startTime);
 			}
 			return imageData;
 		} catch (ScriptException e) {
@@ -56,7 +56,7 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 			throw new JobManagerException("Unable to render image", e);
 		} finally {
 			lock.unlock();
-			logger.info("rendering2");
+			//logger.info("rendering2");
 		}
 	}
 	
@@ -149,6 +149,8 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 		BufferedImage destImage2 = deepCopy(image);
 		destImage2.setRGB(0, 0, image.getWidth()/2, image.getHeight(), maskArray, 0, image.getWidth()/2);
 		imageData.setSplitImage2(destImage2);
+//		image.setRGB(0, 0, image.getWidth()/2, image.getHeight(), maskArray, 0, image.getWidth()/2);
+//		imageData.setSplitImage2(image);
 	}
 	
 	private BufferedImage deepCopy(BufferedImage srcImage) {

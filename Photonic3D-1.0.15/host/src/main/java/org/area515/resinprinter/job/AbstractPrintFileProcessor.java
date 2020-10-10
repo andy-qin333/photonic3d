@@ -579,7 +579,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 			throw new IllegalStateException("initializeDataAid must be called before this method");
 		}
 
-		if (imageData.getPrintableImage() == null) {
+		if (imageData.getSplitImage1() == null) {
 			throw new IllegalStateException("You must specify a sliceImage to display");
 		}
 		
