@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.4.28";  //derby on 2019-11-19
+    private String version = "0.5.01";  //derby on 2020-10-14 for ds300
 
     //private int Page
     private Thread readThread;
@@ -1202,6 +1202,7 @@ public class UartScreenControl
         else if (key_value == 0x03) {
             //Z鏉炴潙缍婇梿锟�
             getPrinter().getGCodeControl().executeZHome();
+            getPrinter().getGCodeControl().executeXHome();
         }
         else if (key_value == 0x04) {
             //Z鏉炵繝绗傜粔璇插煂妞ゅ爼鍎�

@@ -12,6 +12,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.area515.resinprinter.job.AbstractPrintFileProcessor;
 import org.area515.resinprinter.job.AbstractPrintFileProcessor.DataAid;
+
+import com.coremedia.iso.boxes.StaticChunkOffsetBox;
+
 import org.area515.resinprinter.job.JobManagerException;
 
 public abstract class CurrentImageRenderer implements Callable<RenderedData> {
@@ -141,7 +144,8 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 //		imageData.setRemainImage(destImage2);
 		
 		///////speed the pixel operate//////
-		////计算时间超长 造成等待
+		////单灯板移动
+		/*
 		BufferedImage destImage1 = deepCopy(image);
 		int[] maskArray = new int[image.getWidth()*image.getHeight()/2];
 		destImage1.setRGB(image.getWidth()/2+1, 0, image.getWidth()/2-1, image.getHeight(), maskArray, 0, image.getWidth()/2-1);
@@ -151,6 +155,27 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 		imageData.setSplitImage2(destImage2);
 //		image.setRGB(0, 0, image.getWidth()/2, image.getHeight(), maskArray, 0, image.getWidth()/2);
 //		imageData.setSplitImage2(image);
+ */
+		
+		////双灯板方案 图像切割为两条
+		int intScreen1 = 1293;
+		int intScreen2 = 653;
+		int intMask1 = 653;
+		int intMask2 = 1241;
+		int[] screenArray1 = new int[intScreen1*image.getHeight()];
+		int[] screenArray2 = new int[intScreen2*image.getHeight()];
+		int[] maskArray1 = new int[intMask1*image.getHeight()];
+		int[] maskArray2 = new int[intMask2*image.getHeight()];
+		
+		BufferedImage destImage1 = deepCopy(image);
+		destImage1.setRGB(0, 0, intScreen1, image.getHeight(), screenArray1, 0, intScreen1);
+		destImage1.setRGB(intScreen1+intMask1, 0, intMask1, image.getHeight(), screenArray2, 0, intMask1);
+		imageData.setSplitImage1(destImage1);
+		
+		BufferedImage destImage2 = deepCopy(image);
+		destImage2.setRGB(intScreen1, 0, intMask1, image.getHeight(), maskArray1, 0, intMask1);
+		destImage2.setRGB(intScreen1+intMask1+intScreen2, 0, intMask2, image.getHeight(), maskArray2, 0, intMask2);
+		imageData.setSplitImage2(destImage2);
 	}
 	
 	private BufferedImage deepCopy(BufferedImage srcImage) {

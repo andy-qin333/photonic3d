@@ -680,7 +680,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		
 		////add by derby for 13.3inch printer, show half Image and move the UVled
 		if(true) {
-			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, "G1 X150 F2000", false);
+			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, "G1 X50 F2000", false);
 			aid.printer.showImage(imageData.getSplitImage2());
 			
 			 
