@@ -112,7 +112,7 @@ public class UartScreenVar
 	            else if (iconPos == IconPos.FullScreenImage)
 	                pos = 67;
         	}
-        	else if(ModelNumber.equals("3DTALK_DS200")) {
+        	else if(ModelNumber.equals("3DTALK_DS200") || ModelNumber.equals("3DTALK_DS200_MONO"))  {
         		if (iconPos == IconPos.Empty0)
 	                pos = 68;
 	            else if (iconPos == IconPos.Print)
@@ -155,7 +155,7 @@ public class UartScreenVar
 	            else if (iconPos == IconPos.FullScreenImage)
 	                pos = 67;
         	}
-        	else if(ModelNumber.equals("3DTALK_DS200")) {
+        	else if(ModelNumber.equals("3DTALK_DS200") || ModelNumber.equals("3DTALK_DS200_MONO")) {
         		if (iconPos == IconPos.Empty0)
 	                pos = 68;
 	            else if (iconPos == IconPos.Print)

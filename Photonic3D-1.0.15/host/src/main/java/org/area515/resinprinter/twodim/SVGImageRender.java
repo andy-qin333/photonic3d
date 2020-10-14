@@ -92,7 +92,7 @@ public class SVGImageRender extends CurrentImageRenderer
                 		pix0 = pix0&0x000000FF;
                 		pix1 = pix1&0x0000FF00;
                 		pix2 = pix2&0x00FF0000;
-                		int monoPix = pix0 + pix1 + pix2;
+                		int monoPix = pix0 + pix1 + pix2;                		
                 		monoPix = monoPix + 0xFF000000;
                 		monoImage.setRGB(j, i, monoPix);
                 	}
