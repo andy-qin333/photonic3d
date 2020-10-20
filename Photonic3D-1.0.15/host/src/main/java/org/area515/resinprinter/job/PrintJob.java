@@ -403,15 +403,17 @@ public class PrintJob {
 		totalTime = (delayTimeBeforeSolidify + delayTimeAsLiftedTop + delayTimeAfterSolidify) * (totalSlices - currentSlice);
 		if (currentSlice < numberOfFirstLayers)
 		{
-			totalTime += ((numberOfFirstLayers - currentSlice) * firstLayerExposureTime) + ((totalSlices - numberOfFirstLayers) * exposureTime);
+			totalTime += ((numberOfFirstLayers - currentSlice) * firstLayerExposureTime*2) + ((totalSlices - numberOfFirstLayers) * exposureTime*2);
 		}
 		else
 		{
-			totalTime += (totalSlices - currentSlice) * exposureTime;
+			//totalTime += (totalSlices - currentSlice) * exposureTime;
+			totalTime += (totalSlices - currentSlice) * exposureTime*2;
 		}
 		totalTime += (int)(liftDistance / (liftFeedSpeed / (60.0 * 1000))) * (totalSlices - currentSlice);
 		totalTime += (int)(liftDistance / (liftRetractSpeed / (60.0 * 1000))) * (totalSlices - currentSlice);
-		totalTime += 1000 * (totalSlices - currentSlice); //add 1 second because show image need about 1 second;
+		//totalTime += 1000 * (totalSlices - currentSlice); //add 1 second because show image need about 1 second;
+		totalTime += 6000 * (totalSlices - currentSlice); //add 1 second because show image need about 1 second;
 
 		totalTime = (int)(totalTime * 1.05);
 		return totalTime;

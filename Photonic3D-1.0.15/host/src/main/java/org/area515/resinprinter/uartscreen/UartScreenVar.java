@@ -91,7 +91,7 @@ public class UartScreenVar
         int pos = 0;
         switch(lang) {
         case 0: //CN中文
-        	if(ModelNumber.equals("3DTALK_DF200")) {
+        	if(ModelNumber.equals("3DTALK_DS300")) {
         		if (iconPos == IconPos.Empty0)
 	                pos = 68;
 	            else if (iconPos == IconPos.Print)
@@ -134,7 +134,7 @@ public class UartScreenVar
         	break;
         	
         case 1://EN英文
-        	if(ModelNumber.equals("3DTALK_DF200")) {
+        	if(ModelNumber.equals("3DTALK_DS300")) {
 	        	if (iconPos == IconPos.Empty0)
 	                pos = 68;
 	            else if (iconPos == IconPos.Print)
