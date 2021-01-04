@@ -3,7 +3,7 @@ package org.area515.resinprinter.uartscreen;
 /**
  * Created by zyd on 2018/9/4.
  */
-
+/*
 public class UartScreenVar
 {
     static final char addr_btn_file_ctrl = 0x0002;
@@ -57,6 +57,69 @@ public class UartScreenVar
     static final char addr_txt_lifetime_led = 0x1800;
     static final char addr_txt_lifetime_screen = 0x1810;
     static final char addr_txt_led_pwm = 0x1900;
+
+    static final char[] desc_txt_fileList = {0x4003, 0x4023, 0x4043, 0x4063, 0x4083};
+    static final char[] desc_txt_network_list = {0x4103, 0x4123, 0x4143, 0x4163, 0x4183};
+    */
+
+
+/**
+ * modified by derby 2020/12/16 for new DWIN 10.1 panel, new address
+ */
+
+public class UartScreenVar
+{
+    static final char addr_btn_file_ctrl = 0x5002;
+    static final char addr_btn_print_ctrl = 0x5003;
+    static final char addr_btn_network = 0x5004;
+    static final char addr_btn_language = 0x5005;
+    static final char addr_btn_move_control = 0x5006;
+    static final char addr_btn_optical_control = 0x5007;
+    static final char addr_btn_parameters = 0x5008;
+    static final char addr_btn_replace_part = 0x5009;
+    static final char addr_btn_led_pwm_adjust = 0x500A;
+    static final char addr_btn_clear_trough = 0x500B;
+    static final char addr_btn_about = 0x500C;
+    static final char addr_btn_update_software = 0x500D;
+    static final char addr_btn_update_firmware = 0x500E;
+
+    static final char[] addr_icon_prog = {0x5100, 0x5101, 0x5102, 0x5103, 0x5104};
+    static final char addr_icon_pause = 0x5110;
+    static final char addr_icon_stop = 0x5111;
+    static final char addr_icon_parameter_enabled = 0x5120;
+    static final char addr_icon_detection_enabled = 0x5121;
+    static final char addr_icon_led_board = 0x5130;
+    static final char addr_icon_water_pump = 0x5131;
+    static final char addr_icon_image_logo = 0x5132;
+    static final char addr_icon_image_full = 0x5133;
+    static final char addr_icon_printProgress = 0x5143; //add by derby 2020/1/14
+    static final char addr_icon_printProgress_ex = 0x5142; //add by derby 2020/9/24 for ds300
+    static final char addr_icon_lifetime_led = 0x5140; //add by derby 2020/1/14
+    static final char addr_icon_lifetime_screen = 0x5141; //add by derby 2020/1/14
+    //add by derby 2020/2/18 {hour_H，hour_L,min_H,min_L,sec_H,sec_L}
+    static final char[] addr_icon_printTime = {0x5144, 0x5145, 0x5146, 0x5147, 0x5148, 0x5149};
+    
+    
+    static final char addr_txt_machineStatus = 0x6000;
+    static final char addr_txt_printFileName = 0x6020;
+    static final char addr_txt_printTime = 0x6040;  
+    static final char addr_txt_printProgress = 0x6060;
+    static final char[] addr_txt_fileList = {0x6100, 0x6120, 0x6140, 0x6160, 0x6180};
+    static final char addr_txt_filePage = 0x61A0;
+    static final char addr_txt_hardware_version = 0x6200;
+    static final char addr_txt_software_version = 0x6210;
+    static final char addr_txt_ipAddress = 0x6220;
+    static final char addr_txt_modelNumber = 0x6230;
+    static final char[] addr_txt_network_List = {0x6300, 0x6320, 0x6340, 0x6360, 0x6380};
+    static final char addr_txt_networkSsid = 0x63A0;
+    static final char addr_txt_networkPsk = 0x63C0;
+    static final char[] addr_txt_material = {0x6400, 0x6410, 0x6420, 0x6430, 0x6440, 0x6450, 0x6460};
+    static final char addr_txt_led_temperature = 0x6500;
+    static final char addr_txt_admin_password = 0x6600;
+    static final char[] addr_txt_parameters = {0x6700, 0x6710, 0x6720, 0x6730, 0x6740, 0x6750, 0x6760, 0x6770, 0x6780, 0x6790, 0x67A0};
+    static final char addr_txt_lifetime_led = 0x6800;
+    static final char addr_txt_lifetime_screen = 0x6810;
+    static final char addr_txt_led_pwm = 0x6900;
 
     static final char[] desc_txt_fileList = {0x4003, 0x4023, 0x4043, 0x4063, 0x4083};
     static final char[] desc_txt_network_list = {0x4103, 0x4123, 0x4143, 0x4163, 0x4183};

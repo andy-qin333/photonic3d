@@ -324,7 +324,10 @@ public class UartScreenControl
     private void goPage(int page)
     {
         byte[] bytes;
-        bytes = new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) page};
+        
+        ////modified by derby for new dwin 10.1 panel
+        //bytes = new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) page};
+        bytes = new byte[]{0x5A, (byte) 0xA5, 0x07, (byte) 0x82, 0x00, (byte) 0x84, 0x5A, 0x01, 0x00, (byte) page};
 
         try {
             writeQueue.put(bytes);
