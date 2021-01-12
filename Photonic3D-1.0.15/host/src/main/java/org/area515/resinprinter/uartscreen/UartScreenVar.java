@@ -147,7 +147,8 @@ public class UartScreenVar
         About,
         Networks,
         NetworkEdit,
-        Admin
+        Admin,
+        Resin_clean//used for resin clean's pop window auto-close
     }
 
     public static int getIconPos(int lang, String ModelNumber, IconPos iconPos) {//derby2020-6-22 modify for more Models
@@ -272,6 +273,7 @@ public class UartScreenVar
 
         if (pagePos != PagePos.Loading && lang == 1)
             pos += 27;
+
 
         return pos;
     }

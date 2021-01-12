@@ -59,6 +59,10 @@ public class BasicUtillities
         bytes[1] = (byte) (c & 0xFF);
         return bytes;
     }
+    
+    public static byte[] shortToBytes(short s){
+    	return new byte[]{(byte)((s & 0xFF00)>>8),(byte)(s & 0x00FF)};
+    }
 
     public static char byteArrayToChar(byte[] bytes)
     {
