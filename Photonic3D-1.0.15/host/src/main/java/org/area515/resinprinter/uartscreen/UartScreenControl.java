@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.4.30";  //derby on 2019-11-19
+    private String version = "0.4.31";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -1038,6 +1038,8 @@ public class UartScreenControl
         else if (key_value == 0x02)
             pauseJob();
         else if (key_value == 0x03)
+        	writeKey((byte)0xF1);
+        else if (key_value == 0x04)
             stopJob();
     }
 
