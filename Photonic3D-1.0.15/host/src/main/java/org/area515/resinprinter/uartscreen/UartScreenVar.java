@@ -139,11 +139,11 @@ public class UartScreenVar
 	        	if (iconPos == IconPos.Empty0)
 	                pos = 68;
 	            else if (iconPos == IconPos.Print)
-	                pos = 77;
+	                pos = 69;
 	            else if (iconPos == IconPos.Pause)
-	                pos = 78;
+	                pos = 70;
 	            else if (iconPos == IconPos.Stop)
-	                pos = 79;
+	                pos = 71;
 	            else if (iconPos == IconPos.Empty1)
 	                pos = 66;
 	            else if (iconPos == IconPos.LightSwitch)
