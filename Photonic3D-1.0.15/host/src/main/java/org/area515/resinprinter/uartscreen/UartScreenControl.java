@@ -1037,11 +1037,7 @@ public class UartScreenControl
             printJob();
         else if (key_value == 0x02)
             pauseJob();
-<<<<<<< HEAD
         else if (key_value == 0x03 && getPrinter().getStatus().isPrintInProgress())
-=======
-        else if (key_value == 0x03)
->>>>>>> fd9d4bffa49cda1a973f87b4813532016d9af2c6
         	writeKey((byte)0xF1);
         else if (key_value == 0x04)
             stopJob();
