@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.5.02";  //derby on 2020-10-14 for ds300
+    private String version = "0.5.03";  //derby on 2020-10-14 for ds300
 
     //private int Page
     private Thread readThread;
@@ -893,7 +893,7 @@ public class UartScreenControl
                 else if (status.isPaused()) 
                 	writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Print)});
                 else
-                    writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Print)});
+                    writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty0)});
                 if (status.isPrintActive())
                 	writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Stop)});
                 else
@@ -939,16 +939,19 @@ public class UartScreenControl
 
         if (hide) {
             writeText(UartScreenVar.addr_txt_printProgress, String.format("%-10s", "").getBytes());
+            writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)});
+            writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(78)});
         }
         else if (force) {
             String string = String.format("%.1f%%", printProgress);
             writeText(UartScreenVar.addr_txt_printProgress, String.format("%-10s", string).getBytes());
+            //writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)}); //add by derby 2020/9/24 for ds300
             if(printProgress <= 60) {
-            	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(78 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
-            	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)}); //add by derby 2020/9/24 for ds300
+            	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(79 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
+            	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)});
             }
-            else {
-            	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83 + (printProgress-60) / 20)}); //add by derby 2020/9/24 for ds300
+            else if(printProgress > 60 && printProgress < 100){
+            	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(84 + (printProgress-60) / 20)}); //add by derby 2020/9/24 for ds300
 			}
             
             
@@ -1043,7 +1046,9 @@ public class UartScreenControl
             printJob();
         else if (key_value == 0x02)
             pauseJob();
-        else if (key_value == 0x03)
+        else if (key_value == 0x03 && getPrinter().getStatus().isPrintInProgress())
+        	writeKey((byte)0xF1);
+        else if (key_value == 0x04)
             stopJob();
     }
 
@@ -1163,7 +1168,7 @@ public class UartScreenControl
         key_value = payload[8];
 
         ParameterRecord parameterRecord = HostProperties.Instance().getParameterRecord();
-        if (key_value == 0x01)	//涓枃
+        if (key_value == 0x01)	//set to CN
             parameterRecord.setLanguage(0);  
         else if (key_value == 0x02) 
         	parameterRecord.setLanguage(1);//鑻辨枃
@@ -1202,7 +1207,7 @@ public class UartScreenControl
         else if (key_value == 0x03) {
             //Z鏉炴潙缍婇梿锟�
             getPrinter().getGCodeControl().executeZHome();
-            getPrinter().getGCodeControl().executeXHome();
+            //getPrinter().getGCodeControl().executeXHome();
         }
         else if (key_value == 0x04) {
             //Z鏉炵繝绗傜粔璇插煂妞ゅ爼鍎�
@@ -1216,20 +1221,6 @@ public class UartScreenControl
             getPrinter().getGCodeControl().executeSetAbsolutePositioning();
             getPrinter().getGCodeControl().sendGcode("G1 Z0 F1000");
         }
-        ////add by derby for DS300, uvled module
-        else if (key_value == 0x06) {
-            //灯板移动正方向
-        	getPrinter().getGCodeControl().executeSetRelativePositioning();
-            getPrinter().getGCodeControl().sendGcode("G1 X10 F1000");
-            getPrinter().getGCodeControl().executeSetAbsolutePositioning();
-        }
-        else if (key_value == 0x07) {
-            //灯板移动负方向
-        	getPrinter().getGCodeControl().executeSetRelativePositioning();
-            getPrinter().getGCodeControl().sendGcode("G1 X-10 F1000");
-            getPrinter().getGCodeControl().executeSetAbsolutePositioning();
-        }
-        ////add by derby for DS300, uvled module
 
     }
 
