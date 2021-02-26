@@ -32,6 +32,7 @@ public class UartScreenVar
     static final char addr_icon_image_logo = 0x0132;
     static final char addr_icon_image_full = 0x0133;
     static final char addr_icon_printProgress = 0x0143; //add by derby 2020/1/14
+    static final char addr_icon_printProgress_ex = 0x0142; //add by derby 2021/2/26 for ds300 uartscreen
     static final char addr_icon_lifetime_led = 0x0140; //add by derby 2020/1/14
     static final char addr_icon_lifetime_screen = 0x0141; //add by derby 2020/1/14
     //add by derby 2020/2/18 {hour_H，hour_L,min_H,min_L,sec_H,sec_L}
@@ -92,7 +93,7 @@ public class UartScreenVar
         int pos = 0;
         switch(lang) {
         case 0: //CN中文
-        	if(ModelNumber.equals("3DTALK_DF200")) {
+        	if(ModelNumber.equals("3DTALK_DF200") || ModelNumber.equals("3DTALK_DS200_MONO")) {
         		if (iconPos == IconPos.Empty0)
 	                pos = 68;
 	            else if (iconPos == IconPos.Print)
@@ -112,7 +113,7 @@ public class UartScreenVar
 	            else if (iconPos == IconPos.FullScreenImage)
 	                pos = 67;
         	}
-        	else if(ModelNumber.equals("3DTALK_DS200") || ModelNumber.equals("3DTALK_DS200_MONO"))  {
+        	else if(ModelNumber.equals("3DTALK_DS200"))  {
         		if (iconPos == IconPos.Empty0)
 	                pos = 68;
 	            else if (iconPos == IconPos.Print)
@@ -135,7 +136,7 @@ public class UartScreenVar
         	break;
         	
         case 1://EN英文
-        	if(ModelNumber.equals("3DTALK_DF200")) {
+        	if(ModelNumber.equals("3DTALK_DF200") || ModelNumber.equals("3DTALK_DS200_MONO")) {
 	        	if (iconPos == IconPos.Empty0)
 	                pos = 68;
 	            else if (iconPos == IconPos.Print)
@@ -155,7 +156,7 @@ public class UartScreenVar
 	            else if (iconPos == IconPos.FullScreenImage)
 	                pos = 67;
         	}
-        	else if(ModelNumber.equals("3DTALK_DS200") || ModelNumber.equals("3DTALK_DS200_MONO")) {
+        	else if(ModelNumber.equals("3DTALK_DS200")) {
         		if (iconPos == IconPos.Empty0)
 	                pos = 68;
 	            else if (iconPos == IconPos.Print)
@@ -182,7 +183,7 @@ public class UartScreenVar
         return pos;
     }
 
-    public static int getPagePos(int lang, PagePos pagePos) {
+    public static int getPagePos(int lang, String ModelNumber, PagePos pagePos) {
         int pos = 0;
 
         if (pagePos == PagePos.Loading)
@@ -208,8 +209,12 @@ public class UartScreenVar
         if (pagePos == PagePos.Admin)
             pos = 19;
 
-        if (pagePos != PagePos.Loading && lang == 1)
-            pos += 27;
+        if (pagePos != PagePos.Loading && lang == 1){
+        	 if(ModelNumber.equals("3DTALK_DS200_MONO"))
+        		 pos += 32;
+        	 else
+        		 pos += 27;
+        }
 
         return pos;
     }

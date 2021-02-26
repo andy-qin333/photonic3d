@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.4.31";  //derby on 2019-11-19
+    private String version = "0.4.32";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -264,7 +264,7 @@ public class UartScreenControl
                     start_update();
                 }
                 else {
-                    goPage(UartScreenVar.getPagePos(getLanguage(), UartScreenVar.PagePos.Main));
+                    goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Main));
                 }
             }
         });
@@ -376,9 +376,9 @@ public class UartScreenControl
         List<String> files = getPrintableList(whichDir);
         String file;
         int fileCnt = 0;
-        if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO")) 
+        if(getModelNumber().equals("3DTALK_DS200")) 
        	 	fileCnt = 5;
-    	else if(getModelNumber().equals("3DTALK_DF200"))
+    	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO"))
     		fileCnt = 4;
     	else 
        	 	fileCnt = 5;
@@ -427,9 +427,9 @@ public class UartScreenControl
 
         
         int fileCnt = 0;
-        if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO")) 
+        if(getModelNumber().equals("3DTALK_DS200")) 
        	 	fileCnt = 5;
-    	else if(modelNum.equals("3DTALK_DF200"))
+    	else if(modelNum.equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO"))
     		fileCnt = 4;
     	else 
        	 	fileCnt = 5;
@@ -437,13 +437,13 @@ public class UartScreenControl
     	selected = selected % fileCnt;
 
         for (int i = 0; i < fileCnt; i++) {
-        	if(modelNum.equals("3DTALK_DF200")) {
+        	if(modelNum.equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO")) {
 	            if (selected == i)
 	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
 	            else
 	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0x00, (byte)0x00});
         	}
-        	else if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO"))  {
+        	else if(getModelNumber().equals("3DTALK_DS200"))  {
         		if (selected == i)
 	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
 	            else
@@ -455,9 +455,9 @@ public class UartScreenControl
     private void clearProgBar(String modelNum)
     {
     	int fileCnt = 0;
-    	if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO")) 
+    	if(getModelNumber().equals("3DTALK_DS200")) 
        	 	fileCnt = 5;
-    	else if(modelNum.equals("3DTALK_DF200"))
+    	else if(modelNum.equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO"))
     		fileCnt = 4;
     	else {
        	 fileCnt = 5;
@@ -503,9 +503,9 @@ public class UartScreenControl
             public void onProgress(double progress)
             {
             	int fileCnt = 0;
-            	if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO")) 
+            	if(getModelNumber().equals("3DTALK_DS200")) 
             		fileCnt = 5;
-            	else if(getModelNumber().equals("3DTALK_DF200"))
+            	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO"))
             		fileCnt = 4;
             	else
             		fileCnt = 5;
@@ -559,7 +559,7 @@ public class UartScreenControl
 
         if (filename != null) {
             jobPrint(filename);
-            goPage(UartScreenVar.getPagePos(getLanguage(), UartScreenVar.PagePos.Main));
+            goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Main));
         }
     }
 
@@ -603,7 +603,7 @@ public class UartScreenControl
         else
             cur_network_page = cur_network_selected / 5;
 
-        System.out.println("list networks");
+        //System.out.println("list networks");
         for (int i = 0; i < 5; i++) {
             network = "";
             if (network_list != null && network_list.size() > i + cur_network_page * 5) {
@@ -611,7 +611,7 @@ public class UartScreenControl
             }
             try {
                 writeText(UartScreenVar.addr_txt_network_List[i], String.format("%-32s", network).getBytes("UTF-16BE"));
-                System.out.println(network);
+                //System.out.println(network);
             }
             catch (UnsupportedEncodingException e) {
                 System.out.println(e.toString());
@@ -814,7 +814,7 @@ public class UartScreenControl
     {
         writeText(UartScreenVar.addr_txt_admin_password, String.format("%-16s", "").getBytes());
         if (password.equals("123")) {
-            goPage(UartScreenVar.getPagePos(getLanguage(), UartScreenVar.PagePos.Admin));
+            goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Admin));
             setLiftTime();
         }
         else {
@@ -941,11 +941,25 @@ public class UartScreenControl
 
         if (hide) {
             writeText(UartScreenVar.addr_txt_printProgress, String.format("%-10s", "").getBytes());
+            if(getModelNumber().equals("3DTALK_DS200_MONO")){
+            	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)});
+            	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(78)});
+            }
         }
         else if (force) {
             String string = String.format("%.1f%%", printProgress);
             writeText(UartScreenVar.addr_txt_printProgress, String.format("%-10s", string).getBytes());
-            writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(80 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
+            if(getModelNumber().equals("3DTALK_DS200_MONO")){
+            	if(printProgress <= 60) {
+                	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(79 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
+                	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)});
+                }
+                else if(printProgress > 60 && printProgress < 100){
+                	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(84 + (printProgress-60) / 20)}); //add by derby 2020/9/24 for ds300
+    			}
+            }
+            else
+            	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(80 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
         }
     }
 
@@ -962,7 +976,7 @@ public class UartScreenControl
             //writeText(UartScreenVar.addr_icon_printTime, String.format("%-32s", "").getBytes());
         }
         else if (force) {
-        	if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO"))  {
+        	if(getModelNumber().equals("3DTALK_DS200"))  {
         		String string = String.format("%d:%02d:%02d / %d:%02d:%02d",
                         this.printedTime / 3600000,
                         (this.printedTime % 3600000) / 60000,
@@ -972,7 +986,7 @@ public class UartScreenControl
                         (this.remainingTime % 60000) / 1000);
                 writeText(UartScreenVar.addr_txt_printTime, String.format("%-32s", string).getBytes());
         	}
-        	else if(getModelNumber().equals("3DTALK_DF200")) {
+        	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO")) {
         		//add by derby 2020/2/18 printTime by icon
         		long[] timeArray = {this.remainingTime/3600000/10,//hour high bit
             			(this.remainingTime/3600000)%10,	//hour lower bit
@@ -997,9 +1011,9 @@ public class UartScreenControl
         if (payload.length < 9)
             return;
         int fileCnt = 0;
-    	if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO")) 
+    	if(getModelNumber().equals("3DTALK_DS200")) 
        	 	fileCnt = 5;
-    	else if(getModelNumber().equals("3DTALK_DF200"))
+    	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO"))
     		fileCnt = 4;
     	else 
        	 	fileCnt = 5;
@@ -1059,7 +1073,7 @@ public class UartScreenControl
             networkSelect(cur_network_selected + 5);
         else if (key_value == 0x07) {
             if (cur_network_selected >= 0) {
-                goPage(UartScreenVar.getPagePos(getLanguage(), UartScreenVar.PagePos.NetworkEdit));
+                goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.NetworkEdit));
             }
         }
         else if (key_value == 0x08)
@@ -1169,7 +1183,7 @@ public class UartScreenControl
         	return;
         HostProperties.Instance().saveParameterRecord(parameterRecord);
         setMachineStatus(getPrinter().getStatus(), true, false);
-        goPage(UartScreenVar.getPagePos(getLanguage(), UartScreenVar.PagePos.Main));
+        goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Main));
     }
 
     private void action_move_control(byte[] payload)
@@ -1543,16 +1557,16 @@ public class UartScreenControl
     {
         try {
             System.out.println("update started");
-            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), UartScreenVar.PagePos.Updating)});
+            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updating)});
             Thread.sleep(100);
             update_dgus();
             update_filesystem();
-            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), UartScreenVar.PagePos.Updated)});
+            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updated)});
             System.out.println("update completed");
             while (BasicUtillities.isExists(update_path)) {
                 Thread.sleep(1000);
             }
-            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), UartScreenVar.PagePos.Loading)});
+            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Loading)});
             Thread.sleep(100);
             IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo /etc/init.d/cwhservice restart"}, null);
         }
