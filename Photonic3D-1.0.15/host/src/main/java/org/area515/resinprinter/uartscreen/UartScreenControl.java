@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.4.33";  //derby on 2019-11-19
+    private String version = "0.5.01";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -320,11 +320,28 @@ public class UartScreenControl
             System.out.println(e.toString());
         }
     }
+    
+    private void writeKey(Short x, Short y)
+    {
+        byte[] bytes = {0x5A, (byte)0xA5, 0x0B, (byte)0x82, 0x00, (byte)0xD4, 0x5A, (byte)0xA5, 0x00, 0x04};
+
+        bytes = BasicUtillities.bytesCat(bytes, BasicUtillities.shortToBytes(x));
+        bytes = BasicUtillities.bytesCat(bytes, BasicUtillities.shortToBytes(y));
+        try {
+            writeQueue.put(bytes);
+        }
+        catch (InterruptedException e) {
+            System.out.println(e.toString());
+        }
+    }
 
     private void goPage(int page)
     {
         byte[] bytes;
-        bytes = new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) page};
+        
+        ////modified by derby for new dwin 10.1 panel
+        //bytes = new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) page};
+        bytes = new byte[]{0x5A, (byte) 0xA5, 0x07, (byte) 0x82, 0x00, (byte) 0x84, 0x5A, 0x01, 0x00, (byte) page};
 
         try {
             writeQueue.put(bytes);
@@ -643,7 +660,7 @@ public class UartScreenControl
     private void connectNetwork(String ssid, String psk)
     {
         boolean hasSsid = false;
-        writeKey((byte)0xF3);
+        writeKey((short)116,(short)16);
         for (WirelessNetwork network : getNetworks()) {
             if (network.getSsid().equals(ssid)) {
                 hasSsid = true;
@@ -660,15 +677,15 @@ public class UartScreenControl
                                     Thread.sleep(3000);
                                     ipAddress = getIpAddress();
                                     if (ipAddress != null) {
-                                        writeKey((byte)0xF1);
+                                        writeKey((short)16,(short)16);
                                         Thread.sleep(500);
-                                        writeKey((byte)0xF1);
+                                        writeKey((short)16,(short)16);
                                         break;
                                     }
                                     else if (count == 0) {
-                                        writeKey((byte)0xF1);
+                                        writeKey((short)16,(short)16);
                                         Thread.sleep(500);
-                                        writeKey((byte)0xF2);
+                                        writeKey((short)66,(short)16);
                                     }
                                 }
                             }
@@ -680,27 +697,27 @@ public class UartScreenControl
                 }
                 else
                 {
-                    writeKey((byte)0xF1);
+                    writeKey((short)16,(short)16);
                     try {
                         Thread.sleep(500);
                     }
                     catch (InterruptedException e) {
                         System.out.println(e.toString());
                     }
-                    writeKey((byte)0xF2);
+                    writeKey((short)66,(short)16);
                 }
                 break;
             }
         }
         if (!hasSsid) {
-            writeKey((byte)0xF1);
+            writeKey((short)16,(short)16);
             try {
                 Thread.sleep(500);
             }
             catch (InterruptedException e) {
                 System.out.println(e.toString());
             }
-            writeKey((byte)0xF2);
+            writeKey((short)66,(short)16);
         }
     }
 
@@ -818,7 +835,7 @@ public class UartScreenControl
             setLiftTime();
         }
         else {
-            writeKey((byte)0xF1);
+            writeKey((short)16,(short)16);
         }
     }
 
@@ -1052,7 +1069,7 @@ public class UartScreenControl
         else if (key_value == 0x02)
             pauseJob();
         else if (key_value == 0x03 && getPrinter().getStatus().isPrintInProgress())
-        	writeKey((byte)0xF1);
+        	writeKey((short)16,(short)16);
         else if (key_value == 0x04)
             stopJob();
     }
@@ -1083,7 +1100,7 @@ public class UartScreenControl
             if (psk.length() >= 8)
                 connectNetwork(getNetworkSsid(), getNetworkPsk());
             else
-                writeKey((byte)0xF2);
+                writeKey((short)66,(short)16);
         }
     }
 
@@ -1106,11 +1123,11 @@ public class UartScreenControl
         }
         else if (key_value == 0x01) { //娣囨繂鐡ㄩ崣鍌涙殶
             if (getPrinter().getStatus().isPrintInProgress()) {
-                writeKey((byte)0xF2);
+                writeKey((short)66,(short)16);
                 return;
             }
             saveParameters();
-            writeKey((byte)0xF1);
+            writeKey((short)16,(short)16);
         }
         else if (key_value == 0x02) {
             parameterEnabled = !parameterEnabled;
@@ -1347,7 +1364,8 @@ public class UartScreenControl
 
     private void action_set_admin_password(byte[] payload)
     {
-        String password = new String(BasicUtillities.subBytes(payload, 7));
+    	///modify by derby2021-1-4. 
+        String password = new String(BasicUtillities.subBytes(payload, 7, payload[6])); 
         loadAdminAccount(password.replaceAll("[^\\x20-\\x7E]", ""));
     }
 
@@ -1361,11 +1379,11 @@ public class UartScreenControl
 
         if (key_value == 1) {
             getPrinter().setLedUsedTime(0);
-            writeKey((byte)0xF1);
+            writeKey((short)16,(short)16);
         }
         else if (key_value == 2) {
             getPrinter().setScreenUsedTime(0);
-            writeKey((byte)0xF1);
+            writeKey((short)16,(short)16);
         }
         setLiftTime();
     }
@@ -1410,7 +1428,7 @@ public class UartScreenControl
         } else if (key_value == 0x02) //娣囨繂鐡ㄩ悘顖涙緲瀵搫瀹�
         {
             getPrinter().getGCodeControl().executeWriteLedPwmValue(ledPwmValue);
-            writeKey((byte) 0xF1);
+            writeKey((short)16,(short)16);
         } else //闁拷閸戣櫣鏅棃锟�
         {
             if (shutterTimer != null) {
@@ -1440,7 +1458,7 @@ public class UartScreenControl
         int value = payload[8];
 
         if (value == 1) {
-            writeKey((byte)0xF3);
+            writeKey((short)16,(short)16);
             getPrinter().getGCodeControl().executeShutterOn();
             showImage("/opt/cwh/WHITE.png");
             if (shutterTimer != null) {
@@ -1452,7 +1470,7 @@ public class UartScreenControl
                 @Override
                 public void run()
                 {
-                    writeKey((byte)0xF1);
+                	writeKey((short)300,(short)300);
                     getPrinter().getGCodeControl().executeShutterOff();
                     showImage(null);
                 }
@@ -1507,7 +1525,7 @@ public class UartScreenControl
                         start_update();
                     }
                     else {
-                        writeKey((byte)0xF2);
+                        writeKey((short)66,(short)16);
                     }
                 }
             });
@@ -1528,21 +1546,21 @@ public class UartScreenControl
             if (value == 1) {
                 String filename = check_firmware_updatable();
                 if (filename == null) {
-                    writeKey((byte)0xF2);
+                    writeKey((short)66,(short)16);
                     return;
                 }
-                writeKey((byte)0xF3);
+                writeKey((short)116,(short)16);
                 Thread.sleep(500);
                 FirmwareInstall firmwareInstall = new FirmwareInstall(getPrinter());
                 if (firmwareInstall.runInstall(filename)) {
-                    writeKey((byte)0xF1);
+                    writeKey((short)16,(short)16);
                     Thread.sleep(500);
-                    writeKey((byte)0xF1);
+                    writeKey((short)16,(short)16);
                 }
                 else {
-                    writeKey((byte)0xF1);
+                    writeKey((short)16,(short)16);
                     Thread.sleep(500);
-                    writeKey((byte) 0xF2);
+                    writeKey((short)66,(short)16);
                 }
             }
         }
