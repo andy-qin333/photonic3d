@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.5.03";  //derby on 2020-10-14 for ds300
+    private String version = "0.5.04";  //derby on 2020-10-14 for ds300
 
     //private int Page
     private Thread readThread;
@@ -946,11 +946,11 @@ public class UartScreenControl
             String string = String.format("%.1f%%", printProgress);
             writeText(UartScreenVar.addr_txt_printProgress, String.format("%-10s", string).getBytes());
             //writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)}); //add by derby 2020/9/24 for ds300
-            if(printProgress <= 60) {
+            if(printProgress < 60) {
             	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(79 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
             	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)});
             }
-            else if(printProgress > 60 && printProgress < 100){
+            else if(printProgress >= 60 && printProgress < 100){
             	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(84 + (printProgress-60) / 20)}); //add by derby 2020/9/24 for ds300
 			}
             
