@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.5.03";  //derby on 2019-11-19
+    private String version = "0.5.04";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -1581,16 +1581,16 @@ public class UartScreenControl
     {
         try {
             System.out.println("update started");
-            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updating)});
+            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x07, (byte) 0x82, 0x00, (byte) 0x84, 0x5A, 0x01, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updating)});
             Thread.sleep(100);
             update_dgus();
             update_filesystem();
-            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updated)});
+            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x07, (byte) 0x82, 0x00, (byte) 0x84, 0x5A, 0x01, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updated)});
             System.out.println("update completed");
             while (BasicUtillities.isExists(update_path)) {
                 Thread.sleep(1000);
             }
-            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Loading)});
+            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x07, (byte) 0x82, 0x00, (byte) 0x84, 0x5A, 0x01, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Loading)});
             Thread.sleep(100);
             IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo /etc/init.d/cwhservice restart"}, null);
         }
@@ -1665,17 +1665,56 @@ public class UartScreenControl
             return;
 
         for (File file : files) {
-            if (file.getName().toLowerCase().endsWith(".bmp")) {
-                System.out.println("update dgus bmp");
-                update_dgus_bmp(file);
+            if (file.getName().toLowerCase().endsWith(".icl")) {
+                System.out.println("update dgus icl");
+                update_dgus_icl(file);
             }
             if (file.getName().toLowerCase().endsWith(".bin") ||
-                    file.getName().toLowerCase().endsWith(".ico") ||
+                    file.getName().toLowerCase().endsWith(".CFG") ||
                     file.getName().toLowerCase().endsWith(".hkz")) {
                 System.out.println("update dgus others");
                 update_dgus_others(file);
             }
         }
+    }
+    
+    private boolean update_dgus_icl(File file)
+    {
+    	int byteRead;
+        byte[] icl_block;
+        byte[] bmp_body;
+        byte[] img5r6b6g;
+        int bmp_width, bmp_height;
+        int b, g, r;
+        byte[] receive;
+        int icl_number;
+        InputStream inputStream = null;
+
+        String filename = file.getName();
+        if (filename.toLowerCase().endsWith(".icl")) {
+            try {
+                icl_number = Integer.parseInt(filename.replace(".icl", ""));
+                inputStream = new FileInputStream(file);
+                icl_block = new byte[32];
+                byteRead = inputStream.read(icl_block);
+                if (byteRead != 32)
+                    return false;
+            }
+            catch (Exception e) {
+				// TODO: handle exception
+			}
+            finally {
+            	try {
+                    if (inputStream != null)
+                        inputStream.close();
+                }
+                catch (IOException e) {
+                    System.out.println(e.toString());
+                }
+			}
+		
+        }
+        return true;
     }
 
     private boolean update_dgus_bmp(File file)
