@@ -115,7 +115,8 @@ public class UartScreenVar
     static final char addr_txt_modelNumber = 0x6230;
     static final char[] addr_txt_network_List = {0x6300, 0x6320, 0x6340, 0x6360, 0x6380};
     static final char addr_txt_networkSsid = 0x63A0;
-    static final char addr_txt_networkPsk = 0x63C0;
+    //static final char addr_txt_networkPsk = 0x63C0;
+    static final char addr_txt_networkPsk = 0x63bf; //modified by derby 2021/3/8 for dwin new screen
     static final char[] addr_txt_material = {0x6400, 0x6410, 0x6420, 0x6430, 0x6440, 0x6450, 0x6460};
     static final char addr_txt_led_temperature = 0x6500;
     static final char addr_txt_admin_password = 0x6600;

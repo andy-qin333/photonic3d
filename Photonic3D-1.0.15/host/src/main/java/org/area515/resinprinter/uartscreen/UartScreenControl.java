@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.5.01";  //derby on 2019-11-19
+    private String version = "0.5.03";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -677,13 +677,13 @@ public class UartScreenControl
                                     Thread.sleep(3000);
                                     ipAddress = getIpAddress();
                                     if (ipAddress != null) {
-                                        writeKey((short)16,(short)16);
+                                        writeKey((short)120,(short)120);
                                         Thread.sleep(500);
                                         writeKey((short)16,(short)16);
                                         break;
                                     }
                                     else if (count == 0) {
-                                        writeKey((short)16,(short)16);
+                                        writeKey((short)120,(short)120);
                                         Thread.sleep(500);
                                         writeKey((short)66,(short)16);
                                     }
@@ -976,7 +976,7 @@ public class UartScreenControl
     			}
             }
             else
-            	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(80 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
+            	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(81 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
         }
     }
 
@@ -1097,6 +1097,7 @@ public class UartScreenControl
             networksUpdate();
         else if (key_value == 0x09) {
             String psk = getNetworkPsk();
+            System.out.println(psk);
             if (psk.length() >= 8)
                 connectNetwork(getNetworkSsid(), getNetworkPsk());
             else
@@ -1106,7 +1107,12 @@ public class UartScreenControl
 
     private void action_set_network_psk(byte[] payload)
     {
-        String psk = new String(BasicUtillities.subBytes(payload, 7));
+        //String psk = new String(BasicUtillities.subBytes(payload, 7));
+        //setNetworkPsk(psk.replaceAll("[^\\x20-\\x7E]", ""));
+    	
+    	//modified by derby 2021/3/8 for new dwin screen.
+        String psk = new String(BasicUtillities.subBytes(payload, 9, payload[8])); 
+        //System.out.println(psk);
         setNetworkPsk(psk.replaceAll("[^\\x20-\\x7E]", ""));
     }
 
@@ -1470,7 +1476,7 @@ public class UartScreenControl
                 @Override
                 public void run()
                 {
-                	writeKey((short)300,(short)300);
+                	writeKey((short)120,(short)120);
                     getPrinter().getGCodeControl().executeShutterOff();
                     showImage(null);
                 }
