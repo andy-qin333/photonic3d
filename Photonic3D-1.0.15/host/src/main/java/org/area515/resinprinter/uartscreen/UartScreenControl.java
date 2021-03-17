@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.5.04";  //derby on 2019-11-19
+    private String version = "0.5.05";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -1371,8 +1371,8 @@ public class UartScreenControl
     private void action_set_admin_password(byte[] payload)
     {
     	///modify by derby2021-1-4. 
-        String password = new String(BasicUtillities.subBytes(payload, 7, payload[6])); 
-        loadAdminAccount(password.replaceAll("[^\\x20-\\x7E]", ""));
+        String password = new String(BasicUtillities.subBytes(payload,7)); 
+        loadAdminAccount(password.replaceAll("[^\\x21-\\x7E]", ""));
     }
 
     private void action_replace_part(byte[] payload)
