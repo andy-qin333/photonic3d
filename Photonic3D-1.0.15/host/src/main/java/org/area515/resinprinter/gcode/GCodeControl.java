@@ -343,6 +343,11 @@ public abstract class GCodeControl {
 	public String executeShutterOff() {
 		return sendGcode("M106 S0\r\n");
 	}
+	
+	// modified by derby3-19, add LedCooler control
+	public String executeLedCoolerOff() {
+		return sendGcode("M277 S0\r\n");
+	}
 	// FIXME: 2017/9/20 zyd add for execute shutter -e
 	// FIXME: 2017/9/26 zyd add for execute weight -s
 	public String executeMaterialWeight() {
