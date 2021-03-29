@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.5.06";  //derby on 2019-11-19
+    private String version = "0.5.07";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -1563,7 +1563,7 @@ public class UartScreenControl
                 Thread.sleep(500);
                 FirmwareInstall firmwareInstall = new FirmwareInstall(getPrinter());
                 if (firmwareInstall.runInstall(filename)) {
-                    writeKey((short)16,(short)16);
+                    writeKey((short)120,(short)120);   //modified by derby for new dwin screen
                     Thread.sleep(500);
                     writeKey((short)16,(short)16);
                 }
