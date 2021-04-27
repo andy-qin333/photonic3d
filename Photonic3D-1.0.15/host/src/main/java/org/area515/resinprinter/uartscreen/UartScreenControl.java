@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.4.35";  //derby on 2019-11-19
+    private String version = "0.4.36";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -1279,6 +1279,10 @@ public class UartScreenControl
                     shutterTimer = null;
                 }
                 getPrinter().getGCodeControl().executeShutterOff();
+                /////modified by derby 3-19, close the ledboard, and Ledcooler waterpump
+                getPrinter().getGCodeControl().executeLedCoolerOff();
+                getPrinter().getGCodeControl().executeWaterPumpOff();
+                waterPumpEnabled = false;
                 ledBoardEnabled = false;
             }
         } else if (key_value == 0x02) {
