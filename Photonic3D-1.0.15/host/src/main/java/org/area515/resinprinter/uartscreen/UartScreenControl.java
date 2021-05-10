@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.5.07";  //derby on 2019-11-19
+    private String version = "0.5.08";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -1138,9 +1138,9 @@ public class UartScreenControl
         else if (key_value == 0x02) {
             parameterEnabled = !parameterEnabled;
             if (parameterEnabled)
-                writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 67});
+                writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 65});
             else
-                writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 66});
+                writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 64});
         }
         else if (key_value == 0x03) {
             detectionEnabled = !detectionEnabled;
