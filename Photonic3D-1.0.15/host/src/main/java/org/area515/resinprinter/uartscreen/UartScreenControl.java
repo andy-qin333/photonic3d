@@ -376,9 +376,9 @@ public class UartScreenControl
         List<String> files = getPrintableList(whichDir);
         String file;
         int fileCnt = 0;
-        if(getModelNumber().equals("3DTALK_DS200")) 
+        if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO")) 
        	 	fileCnt = 5;
-    	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO"))
+    	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS260"))
     		fileCnt = 4;
     	else 
        	 	fileCnt = 5;
@@ -427,9 +427,9 @@ public class UartScreenControl
 
         
         int fileCnt = 0;
-        if(getModelNumber().equals("3DTALK_DS200")) 
+        if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO")) 
        	 	fileCnt = 5;
-    	else if(modelNum.equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO"))
+    	else if(modelNum.equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS260"))
     		fileCnt = 4;
     	else 
        	 	fileCnt = 5;
@@ -437,13 +437,13 @@ public class UartScreenControl
     	selected = selected % fileCnt;
 
         for (int i = 0; i < fileCnt; i++) {
-        	if(modelNum.equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO")) {
+        	if(modelNum.equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS260")) {
 	            if (selected == i)
 	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
 	            else
 	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0x00, (byte)0x00});
         	}
-        	else if(getModelNumber().equals("3DTALK_DS200"))  {
+        	else if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO"))  {
         		if (selected == i)
 	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
 	            else
@@ -455,9 +455,9 @@ public class UartScreenControl
     private void clearProgBar(String modelNum)
     {
     	int fileCnt = 0;
-    	if(getModelNumber().equals("3DTALK_DS200")) 
+    	if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO")) 
        	 	fileCnt = 5;
-    	else if(modelNum.equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO"))
+    	else if(modelNum.equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS260"))
     		fileCnt = 4;
     	else {
        	 fileCnt = 5;
@@ -503,9 +503,9 @@ public class UartScreenControl
             public void onProgress(double progress)
             {
             	int fileCnt = 0;
-            	if(getModelNumber().equals("3DTALK_DS200")) 
+            	if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO")) 
             		fileCnt = 5;
-            	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO"))
+            	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS260"))
             		fileCnt = 4;
             	else
             		fileCnt = 5;
@@ -941,7 +941,7 @@ public class UartScreenControl
 
         if (hide) {
             writeText(UartScreenVar.addr_txt_printProgress, String.format("%-10s", "").getBytes());
-            if(getModelNumber().equals("3DTALK_DS200_MONO")){
+            if(getModelNumber().equals("3DTALK_DS260")){
             	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)});
             	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(78)});
             }
@@ -949,7 +949,7 @@ public class UartScreenControl
         else if (force) {
             String string = String.format("%.1f%%", printProgress);
             writeText(UartScreenVar.addr_txt_printProgress, String.format("%-10s", string).getBytes());
-            if(getModelNumber().equals("3DTALK_DS200_MONO")){
+            if(getModelNumber().equals("3DTALK_DS260")){
             	if(printProgress < 60) {
                 	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(79 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
                 	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)});
@@ -976,7 +976,7 @@ public class UartScreenControl
             //writeText(UartScreenVar.addr_icon_printTime, String.format("%-32s", "").getBytes());
         }
         else if (force) {
-        	if(getModelNumber().equals("3DTALK_DS200"))  {
+        	if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO"))  {
         		String string = String.format("%d:%02d:%02d / %d:%02d:%02d",
                         this.printedTime / 3600000,
                         (this.printedTime % 3600000) / 60000,
@@ -986,7 +986,7 @@ public class UartScreenControl
                         (this.remainingTime % 60000) / 1000);
                 writeText(UartScreenVar.addr_txt_printTime, String.format("%-32s", string).getBytes());
         	}
-        	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO")) {
+        	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS260")) {
         		//add by derby 2020/2/18 printTime by icon
         		long[] timeArray = {this.remainingTime/3600000/10,//hour high bit
             			(this.remainingTime/3600000)%10,	//hour lower bit
@@ -1011,9 +1011,9 @@ public class UartScreenControl
         if (payload.length < 9)
             return;
         int fileCnt = 0;
-    	if(getModelNumber().equals("3DTALK_DS200")) 
+    	if(getModelNumber().equals("3DTALK_DS200") || getModelNumber().equals("3DTALK_DS200_MONO")) 
        	 	fileCnt = 5;
-    	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO"))
+    	else if(getModelNumber().equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS260"))
     		fileCnt = 4;
     	else 
        	 	fileCnt = 5;
@@ -1279,6 +1279,10 @@ public class UartScreenControl
                     shutterTimer = null;
                 }
                 getPrinter().getGCodeControl().executeShutterOff();
+                /////modified by derby 3-19, close the ledboard, and Ledcooler waterpump
+                getPrinter().getGCodeControl().executeLedCoolerOff();
+                getPrinter().getGCodeControl().executeWaterPumpOff();
+                waterPumpEnabled = false;
                 ledBoardEnabled = false;
             }
         } else if (key_value == 0x02) {
