@@ -31,6 +31,8 @@ import org.area515.resinprinter.services.PrinterService;
 import org.area515.util.BasicUtillities;
 import org.area515.util.IOUtilities;
 
+import com.google.common.primitives.Bytes;
+
 /**
  * Created by zyd on 2017/8/10.
  * uart screen control
@@ -1677,32 +1679,55 @@ public class UartScreenControl
                     file.getName().toLowerCase().endsWith(".CFG") ||
                     file.getName().toLowerCase().endsWith(".hkz")) {
                 System.out.println("update dgus others");
-                update_dgus_others(file);
+                //update_dgus_others(file);
             }
         }
     }
     
     private boolean update_dgus_icl(File file)
     {
-    	int byteRead;
+    	int byteRead = 0;
+    	int icl_number;
         byte[] icl_block;
-        byte[] bmp_body;
-        byte[] img5r6b6g;
-        int bmp_width, bmp_height;
-        int b, g, r;
-        byte[] receive;
-        int icl_number;
+        byte[] buff;
+        int addr = 0x8000;
         InputStream inputStream = null;
 
         String filename = file.getName();
-        if (filename.toLowerCase().endsWith(".icl")) {
+//        if (filename.toLowerCase().endsWith(".icl")) {
             try {
-                icl_number = Integer.parseInt(filename.replace(".icl", ""));
+                icl_number = Integer.parseInt(filename.substring(0, filename.lastIndexOf(".")));
                 inputStream = new FileInputStream(file);
-                icl_block = new byte[32];
-                byteRead = inputStream.read(icl_block);
-                if (byteRead != 32)
-                    return false;
+                icl_block = new byte[32*1024];
+                int write_addr = icl_number*256/32;
+                while(true) {
+                	byteRead = inputStream.read(icl_block);
+                	if(byteRead == -1)
+                		break;
+	                int i = 0;
+	               do {
+	                	buff = BasicUtillities.subBytes(icl_block,240*i,240);
+	                	
+	                    byte[] bytes = {0x5A,(byte)0xA5,(byte)0xF3,(byte)0x82,(byte)(addr>>8),(byte)addr};
+	                    bytes = BasicUtillities.bytesCat(bytes, buff);
+	                	getPrinter().getUartScreenSerialPort().write(bytes);
+	                	addr = addr + 0x78;
+	                	i++;
+//	                	if(i==136)
+//	                		System.out.print(addr);
+	                }
+	               	while(i<(byteRead/240));
+	               
+	               	byte[] bytes = {0x5A,(byte)0xA5,(byte)((byteRead-240*i)+3),(byte)0x82,(byte)(addr>>8),(byte)addr};
+	               	buff = BasicUtillities.subBytes(icl_block, 240*i, byteRead-240*i);
+                   	bytes = BasicUtillities.bytesCat(bytes, buff);
+               		getPrinter().getUartScreenSerialPort().write(bytes);
+	               
+	                getPrinter().getUartScreenSerialPort().write(new byte[] {0x5A,(byte)0xA5,0x0F,(byte)0X82,0X00,(byte)0XAA,0X5A,0X02,(byte)(write_addr>>8),(byte)write_addr,(byte)0x80,0x00,0x00,0x14,0x00,0x00,0x00,0x00});
+	                write_addr++;
+	                Thread.sleep(200);
+
+                }
             }
             catch (Exception e) {
 				// TODO: handle exception
@@ -1717,7 +1742,7 @@ public class UartScreenControl
                 }
 			}
 		
-        }
+//        }
         return true;
     }
 
