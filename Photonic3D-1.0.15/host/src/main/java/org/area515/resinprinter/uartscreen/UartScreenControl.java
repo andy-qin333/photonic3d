@@ -40,7 +40,7 @@ import com.google.common.primitives.Bytes;
 
 public class UartScreenControl
 {
-    private String version = "0.5.08";  //derby on 2019-11-19
+    private String version = "0.5.09";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -782,9 +782,9 @@ public class UartScreenControl
         writeText(UartScreenVar.addr_txt_parameters[9], new byte[] { (byte) ((delayTimeAsLiftedTop >> 8) & 0xFF), (byte) (delayTimeAsLiftedTop & 0xFF)});
         writeText(UartScreenVar.addr_txt_parameters[10], new byte[] { (byte) ((delayTimeForAirPump >> 8) & 0xFF), (byte) (delayTimeForAirPump & 0xFF)});
         if (parameterEnabled)
-            writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 67});
+            writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 65});
         else
-            writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 66});
+            writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 64});
         if (detectionEnabled)
             writeText(UartScreenVar.addr_icon_detection_enabled, new byte[] {0x00, 67});
         else
