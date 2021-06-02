@@ -333,7 +333,8 @@ public abstract class GCodeControl {
 
 	// FIXME: 2017/10/26 zyd add for execute query temperature -s
 	public String executeQueryTemperature() {
-		return sendGcode("M105\r\n");
+		String strTemp = sendGcode("M105\r\n");
+		return strTemp.substring(strTemp.indexOf("B:")+2, strTemp.indexOf(" ", strTemp.indexOf("B:")));
 	}
 	// FIXME: 2017/10/26 zyd add for execute query temperature -e
 	// FIXME: 2017/9/20 zyd add for execute shutter -s
@@ -372,6 +373,12 @@ public abstract class GCodeControl {
 	public String executeWaterPumpOff() {
 		return sendGcode("M266 S0\r\n");
 	}
+	
+	public String getSerialNumber() {
+		String strMsgString = sendGcode("V0!\r\n");
+		return strMsgString.substring(strMsgString.indexOf("V:")+2, strMsgString.indexOf("V:")+12);
+         
+    }
 	// FIXME: 2017/10/20 zyd add for execute water pump -e
 	// FIXME: 2017/11/1 zyd add for execute detect machine status -s
 	public String executeDetectLiquidLevel() {

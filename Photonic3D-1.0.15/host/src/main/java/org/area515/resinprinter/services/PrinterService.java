@@ -126,6 +126,67 @@ public class PrinterService {
 	public String getModel() {
 		return HostProperties.Instance().getModelNumber();
 	}
+	///////api serial number   modified by derby 6-2
+	@ApiOperation(value="Get serialNumber.")
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = SwaggerMetadata.TODO),
+			@ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("serialNumber/{printername}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse serialNumber(@PathParam("printername") String printerName) {
+		Printer printer = PrinterManager.Instance().getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("serialNumber", false, "Printer:" + printerName + " not started");
+		}
+		return new MachineResponse("serialNumber", true, printer.getGCodeControl().getSerialNumber());
+	 }
+	
+    @ApiOperation(value="Get screenUsedTime.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("screenUsedTime/{printername}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse screenUsedTime(@PathParam("printername") String printerName) {
+		Printer printer = PrinterManager.Instance().getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("screenUsedTime", false, "Printer:" + printerName + " not started");
+		}
+		return new MachineResponse("screenUsedTime", true, String.valueOf(printer.getScreenUsedTime()));
+	 }
+	
+    @ApiOperation(value="Get uvLedUsedTime.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("uvLedUsedTime/{printername}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse ledUsedTime(@PathParam("printername") String printerName) {
+		Printer printer = PrinterManager.Instance().getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("uvLedUsedTime", false, "Printer:" + printerName + " not started");
+		}
+		return new MachineResponse("uvLedUsedTime", true, String.valueOf(printer.getLedUsedTime()));
+	 }
+	
+    
+    @ApiOperation(value="get LED temprature for the Printer specified by the printername.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("uvLedTemperature/{printername}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse uvLedTemperature(@PathParam("printername") String printerName) {
+		Printer printer = PrinterManager.Instance().getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("uvLedTemperature", false, "Printer:" + printerName + " not started");
+		}
+		return new MachineResponse("uvLedTemperature", true, printer.getGCodeControl().executeQueryTemperature());
+	 }
 
 	@ApiOperation(value="Lists all of the printers that are managed by Photonic 3D.")
     @ApiResponses(value = {

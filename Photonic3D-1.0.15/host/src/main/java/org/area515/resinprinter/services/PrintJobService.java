@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +45,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.mp4parser.iso14496.part15.HevcDecoderConfigurationRecord.Array;
 
 @Api(value="printJobs")
 @RolesAllowed(PhotonicUser.FULL_RIGHTS)
@@ -62,7 +64,10 @@ public class PrintJobService {
 	@Path("list")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<PrintJob> getPrintJobs() {
-		return PrintJobManager.Instance().getPrintJobs();
+    	List<PrintJob> jobs = PrintJobManager.Instance().getPrintJobs();
+    	if(jobs.size() == 0)
+    		return jobs;
+		return jobs.subList(jobs.size()-1, jobs.size());
 	}	 
 
     @ApiOperation(value="Returns the specific printjob designated by it's internal job id.")
