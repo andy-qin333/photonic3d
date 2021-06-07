@@ -40,7 +40,7 @@ import com.google.common.primitives.Bytes;
 
 public class UartScreenControl
 {
-    private String version = "0.5.11";  //derby on 2019-11-19
+    private String version = "0.5.12";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -1505,6 +1505,7 @@ public class UartScreenControl
     {
         setVersion(version, UartScreenVar.addr_txt_software_version);
         setVersion(getPrinter().getGCodeControl().executeGetFirmwareVersion(), UartScreenVar.addr_txt_hardware_version);
+        setVersion(getPrinter().getGCodeControl().getSerialNumber(), UartScreenVar.addr_txt_serialNumber);
         String ipAddress = getIpAddress();
         if (ipAddress != null) {
             writeText(UartScreenVar.addr_txt_ipAddress, String.format("%-16s", ipAddress).getBytes());

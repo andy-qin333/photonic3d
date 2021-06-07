@@ -113,6 +113,7 @@ public class UartScreenVar
     static final char addr_txt_software_version = 0x6210;
     static final char addr_txt_ipAddress = 0x6220;
     static final char addr_txt_modelNumber = 0x6230;
+    static final char addr_txt_serialNumber = 0x6240;   //add by derby 6-7 for serial number
     static final char[] addr_txt_network_List = {0x6300, 0x6320, 0x6340, 0x6360, 0x6380};
     static final char addr_txt_networkSsid = 0x63A0;
     //static final char addr_txt_networkPsk = 0x63C0;

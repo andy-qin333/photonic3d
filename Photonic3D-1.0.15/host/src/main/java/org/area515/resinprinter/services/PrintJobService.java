@@ -64,10 +64,7 @@ public class PrintJobService {
 	@Path("list")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<PrintJob> getPrintJobs() {
-    	List<PrintJob> jobs = PrintJobManager.Instance().getPrintJobs();
-    	if(jobs.size() == 0)
-    		return jobs;
-		return jobs.subList(jobs.size()-1, jobs.size());
+    	return PrintJobManager.Instance().getPrintJobs();
 	}	 
 
     @ApiOperation(value="Returns the specific printjob designated by it's internal job id.")

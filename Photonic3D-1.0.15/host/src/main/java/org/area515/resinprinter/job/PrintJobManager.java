@@ -17,10 +17,12 @@ import org.area515.resinprinter.printer.Printer;
 import org.area515.resinprinter.printer.PrinterManager;
 import org.area515.resinprinter.server.HostProperties;
 import org.area515.resinprinter.server.Main;
+import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 
 public class PrintJobManager {
 	private static final Logger logger = LogManager.getLogger();
 	private static PrintJobManager INSTANCE;
+	private UUID currentJobUUID;
 	
 	private ConcurrentHashMap<UUID, PrintJob> printJobsByJobId = new ConcurrentHashMap<UUID, PrintJob>();
 	
@@ -78,12 +80,17 @@ public class PrintJobManager {
 	}
 	
 	public List<PrintJob> getPrintJobs() {
-		return new ArrayList<PrintJob>(printJobsByJobId.values());
+//		return new ArrayList<PrintJob>(printJobsByJobId.values());
+		////modified by derby 6-8 for return printing job
+		if(printJobsByJobId.isEmpty() == true || getJob(currentJobUUID) == null)
+			return new ArrayList<PrintJob>(printJobsByJobId.values());
+		return new ArrayList<PrintJob>() {{add(getJob(currentJobUUID));}};
 	}
 	
 	public PrintJob createJob(File job, final Printer printer, Customizer customizer) throws JobManagerException, AlreadyAssignedException  {
 		final PrintJob newJob = new PrintJob(job);
 		PrintJob otherJob = printJobsByJobId.putIfAbsent(newJob.getId(), newJob);
+		currentJobUUID = newJob.getId();
 
 		//This could never happen.
 		if (otherJob != null) {
@@ -153,13 +160,13 @@ public class PrintJobManager {
 	public boolean removeJob(PrintJob job) {
 		if (job == null)
 			return false;
+//		boolean ret = false;
 		
 		job = printJobsByJobId.get(job.getId());
 		Printer printer = job.getPrinter();
 		if (printer != null && printer.isPrintActive()) {
 			throw new IllegalArgumentException("Can't remove job while it's being printed.");
 		}
-		
 		return printJobsByJobId.remove(job.getId()) != null;
 	}
 }

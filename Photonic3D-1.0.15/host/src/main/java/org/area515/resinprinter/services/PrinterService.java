@@ -136,10 +136,13 @@ public class PrinterService {
 	@Produces(MediaType.APPLICATION_JSON)
 	public MachineResponse serialNumber(@PathParam("printername") String printerName) {
 		Printer printer = PrinterManager.Instance().getPrinter(printerName);
-		if (printer == null) {
-			return new MachineResponse("serialNumber", false, "Printer:" + printerName + " not started");
-		}
-		return new MachineResponse("serialNumber", true, printer.getGCodeControl().getSerialNumber());
+//		if (printer == null) {
+//			return new MachineResponse("serialNumber", false, "Printer:" + printerName + " not started");
+//		}
+		String serialNumString = printer.getGCodeControl().getSerialNumber();
+		if(serialNumString != "")
+			return new MachineResponse("serialNumber", true, printer.getGCodeControl().getSerialNumber());
+		return null;
 	 }
 	
     @ApiOperation(value="Get screenUsedTime.")
@@ -185,7 +188,8 @@ public class PrinterService {
 		if (printer == null) {
 			return new MachineResponse("uvLedTemperature", false, "Printer:" + printerName + " not started");
 		}
-		return new MachineResponse("uvLedTemperature", true, printer.getGCodeControl().executeQueryTemperature());
+		String strTemp = printer.getGCodeControl().executeQueryTemperature();
+		return new MachineResponse("uvLedTemperature", true, strTemp.substring(strTemp.indexOf("B:")+2, strTemp.indexOf(" ", strTemp.indexOf("B:"))));
 	 }
 
 	@ApiOperation(value="Lists all of the printers that are managed by Photonic 3D.")
