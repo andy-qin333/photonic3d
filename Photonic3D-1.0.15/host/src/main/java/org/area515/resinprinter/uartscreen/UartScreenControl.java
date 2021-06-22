@@ -1514,7 +1514,7 @@ public class UartScreenControl
             writeText(UartScreenVar.addr_txt_ipAddress, String.format("%-16s", "").getBytes());
         }
         //String modelNumber = HostProperties.Instance().getModelNumber();
-        writeText(UartScreenVar.addr_txt_modelNumber, String.format("%-16s", "3DP-100").getBytes());
+        writeText(UartScreenVar.addr_txt_modelNumber, String.format("%-16s", "SD3D-01").getBytes());
     }
 
     private void action_update_software(byte[] payload)
