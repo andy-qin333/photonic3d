@@ -40,7 +40,7 @@ import com.google.common.primitives.Bytes;
 
 public class UartScreenControl
 {
-    private String version = "0.5.13";  //derby on 2019-11-19
+    private String version = "0.5.15";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -1465,7 +1465,7 @@ public class UartScreenControl
 
     private void action_clear_trough(byte[] payload)
     {
-        if (payload.length < 9)
+        if (payload.length < 9 || getPrinter().isPrintInProgress())
             return;
         int value = payload[8];
 
