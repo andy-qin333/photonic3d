@@ -136,9 +136,10 @@ public class PrinterService {
 	@Produces(MediaType.APPLICATION_JSON)
 	public MachineResponse serialNumber(@PathParam("printername") String printerName) {
 		Printer printer = PrinterManager.Instance().getPrinter(printerName);
-//		if (printer == null) {
+		if (printer == null) {
 //			return new MachineResponse("serialNumber", false, "Printer:" + printerName + " not started");
-//		}
+			return null;
+		}
 		String serialNumString = printer.getGCodeControl().getSerialNumber();
 		if(serialNumString != "")
 			return new MachineResponse("serialNumber", true, printer.getGCodeControl().getSerialNumber());
