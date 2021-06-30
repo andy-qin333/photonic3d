@@ -40,7 +40,7 @@ import com.google.common.primitives.Bytes;
 
 public class UartScreenControl
 {
-    private String version = "0.5.15";  //derby on 2019-11-19
+    private String version = "0.5.17";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -1514,7 +1514,7 @@ public class UartScreenControl
             writeText(UartScreenVar.addr_txt_ipAddress, String.format("%-16s", "").getBytes());
         }
         //String modelNumber = HostProperties.Instance().getModelNumber();
-        writeText(UartScreenVar.addr_txt_modelNumber, String.format("%-16s", "3DP-100").getBytes());
+        writeText(UartScreenVar.addr_txt_modelNumber, String.format("%-16s", "3D P-100").getBytes());
     }
 
     private void action_update_software(byte[] payload)
@@ -1563,6 +1563,8 @@ public class UartScreenControl
                     return;
                 }
                 writeKey((short)116,(short)16);
+                ///////modified by derby 6-30 firmware update conflict with oqton collector service ,stop it temporary 
+                IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo service oqton.data.collector stop"}, null);
                 Thread.sleep(500);
                 FirmwareInstall firmwareInstall = new FirmwareInstall(getPrinter());
                 if (firmwareInstall.runInstall(filename)) {
@@ -1575,6 +1577,7 @@ public class UartScreenControl
                     Thread.sleep(500);
                     writeKey((short)66,(short)16);
                 }
+                IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo service oqton.data.collector start"}, null);
             }
         }
         catch (InterruptedException e) {
