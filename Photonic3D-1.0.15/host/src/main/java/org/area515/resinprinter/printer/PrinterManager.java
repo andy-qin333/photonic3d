@@ -19,6 +19,7 @@ import org.area515.resinprinter.job.PrintJob;
 import org.area515.resinprinter.notification.NotificationManager;
 import org.area515.resinprinter.serial.SerialCommunicationsPort;
 import org.area515.resinprinter.serial.SerialManager;
+import org.area515.util.IOUtilities;
 
 public class PrinterManager {
     private static final Logger logger = LogManager.getLogger();
@@ -185,6 +186,8 @@ public class PrinterManager {
 			NotificationManager.printerChanged(printer);
 			printer.setStarted(true);
 			logger.info("Printer started:{}", printer);
+			IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo service oqton.data.collector start"}, null);
+			IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo service oqton.data.jobs start"}, null);
 		}
 		catch (JobManagerException | AlreadyAssignedException | InappropriateDeviceException e) {
 			printer.setStatus(JobStatus.ErrorControlBoard);
