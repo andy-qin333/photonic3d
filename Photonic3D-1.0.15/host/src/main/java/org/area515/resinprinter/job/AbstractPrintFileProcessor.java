@@ -630,10 +630,10 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		 
 		//2019/11/13 derby add for synchronied UVLed time
 		DisplayState state = aid.printer.getDisplayState();
-		while(state != DisplayState.Finished) {
-			Thread.sleep(10);
-			state = aid.printer.getDisplayState();
-		}
+//		while(state != DisplayState.Finished) {
+//			Thread.sleep(10);
+//			state = aid.printer.getDisplayState();
+//		}
 		//2019/11/13 derby add for synchronied UVLed time
 		
 		if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {

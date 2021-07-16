@@ -47,6 +47,7 @@ public abstract class CurrentImageRenderer implements Callable<RenderedData> {
 				long pixelArea = computePixelArea(image);
 				imageData.setArea((double)pixelArea);
 				logger.info("Loaded {} with {} non-black pixels in {}ms", imageIndexToBuild, pixelArea, System.currentTimeMillis()-startTime);
+				System.out.println(System.currentTimeMillis()-startTime);
 			}
 			return imageData;
 		} catch (ScriptException e) {
