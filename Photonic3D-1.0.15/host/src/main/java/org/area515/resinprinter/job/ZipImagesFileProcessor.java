@@ -138,7 +138,7 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 				if (imageFile.getName().toLowerCase().endsWith(".svg")) {
 					if (HostProperties.Instance().isUseGraphicsMagick())
 						prepareImage = Main.GLOBAL_EXECUTOR.submit(new GraphicsMagickRender(dataAid, this, imageFile));
-					else
+					else 
 						prepareImage = Main.GLOBAL_EXECUTOR.submit(new SVGImageRender(dataAid, this, imageFile));
 				} else
 					prepareImage = Main.GLOBAL_EXECUTOR.submit(new SimpleImageRenderer(dataAid, this, imageFile));
@@ -159,12 +159,12 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 					if (status != null) {
 						break;
 					}
-					logger.info("test11");
 				//	while(!prepareImage.isDone()) {
 				//		Thread.sleep(300);
 				//		logger.info("waiting for render");
 				//	}
 					RenderedData imageData = prepareImage.get(); //derby 6-10 造成假死现象（真实原因是串口屏的硬件没连接，直接删除配置，导致了问题随机发生）
+					status = printImage(dataAid, imageData.getPrintableImage());
 				
 					dataAid.cache.setCurrentRenderingPointer(imageFile);
 					if (imgIter.hasNext()) {
@@ -186,13 +186,12 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 					} else {
 						slicePending = false;
 					}
+					status = performPostProcessing(dataAid);
 					
-					status = printImageAndPerformPostProcessing(dataAid, imageData.getPrintableImage());
 					
 					if (status != null) {
 						break;
 					}
-					logger.info("test5");
 				} while (slicePending);
 			}
 			return performFooter(dataAid);

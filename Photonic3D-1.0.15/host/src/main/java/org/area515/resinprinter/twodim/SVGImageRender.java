@@ -39,7 +39,7 @@ public class SVGImageRender extends CurrentImageRenderer
     @Override
     public BufferedImage renderImage(BufferedImage image) throws JobManagerException
     {
-        return convertSVGToPNG();
+    	return convertSVGToPNG();
     }
 
     public BufferedImage convertSVGToPNG() throws JobManagerException
