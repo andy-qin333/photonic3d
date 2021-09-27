@@ -895,7 +895,18 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		logger.info("{ \"layer\": {}, \"exposureTime\": {}, \"liftDistance\": {}, \"liftFeedSpeed\": {} , \"liftRetractSpeed\": {} , \"layerAreaMM2\": {} }",
 			aid.printJob.getCurrentSlice(), aid.printJob.getExposureTime(), aid.printJob.getZLiftDistance(),
 			aid.printJob.getZLiftFeedSpeed(), aid.printJob.getZLiftRetractSpeed(), buildArea);
-		
+		// FIXME: 2018/5/14 zyd add for set delay time -s
+		if (aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator() != null && aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator().trim().length() > 0)
+		{
+			Number value = calculate(aid, aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator(), "delay time before solidify script");
+			if (value != null) {
+				aid.printJob.setDelayTimeBeforeSolidify(value.intValue());
+			}
+		}
+		if (aid.printJob.getDelayTimeBeforeSolidify() > 0)
+		{
+			Thread.sleep(aid.printJob.getDelayTimeBeforeSolidify());
+		}
 		//Perform area and cost manipulations for current slice
 		aid.printJob.addNewSlice(System.currentTimeMillis() - aid.currentSliceTime, buildArea);
 		//Notify the client that the printJob has increased the currentSlice
@@ -937,18 +948,18 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 			}
 		}
 
-		// FIXME: 2018/5/14 zyd add for set delay time -s
-		if (aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator() != null && aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator().trim().length() > 0)
-		{
-			Number value = calculate(aid, aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator(), "delay time before solidify script");
-			if (value != null) {
-				aid.printJob.setDelayTimeBeforeSolidify(value.intValue());
-			}
-		}
-		if (aid.printJob.getDelayTimeBeforeSolidify() > 0)
-		{
-			Thread.sleep(aid.printJob.getDelayTimeBeforeSolidify());
-		}
+//		// FIXME: 2018/5/14 zyd add for set delay time -s
+//		if (aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator() != null && aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator().trim().length() > 0)
+//		{
+//			Number value = calculate(aid, aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator(), "delay time before solidify script");
+//			if (value != null) {
+//				aid.printJob.setDelayTimeBeforeSolidify(value.intValue());
+//			}
+//		}
+//		if (aid.printJob.getDelayTimeBeforeSolidify() > 0)
+//		{
+//			Thread.sleep(aid.printJob.getDelayTimeBeforeSolidify());
+//		}
 		// FIXME: 2018/5/14 zyd add for set delay time -e
 
 		//aid.printer.showImage(sliceImage);  derby modify,the fun need more time

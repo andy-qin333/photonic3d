@@ -90,6 +90,7 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 //			JsonArray jsonArray=json.get("layers").getAsJsonArray();    //得到为json的数组
 			
 			printJob.setTotalSlices(imageFiles.size());
+			Thread.currentThread().setPriority(10);
 
 			NotificationManager.jobChanged(dataAid.printer, dataAid.printJob);
 			if (dataAid.slicingProfile.getDetectionEnabled()) {
@@ -165,7 +166,7 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 				//	}
 					RenderedData imageData = prepareImage.get(); //derby 6-10 造成假死现象（真实原因是串口屏的硬件没连接，直接删除配置，导致了问题随机发生）
 					status = printImage(dataAid, imageData.getPrintableImage());
-				
+					
 					dataAid.cache.setCurrentRenderingPointer(imageFile);
 					if (imgIter.hasNext()) {
 						imageFile = imgIter.next();   
