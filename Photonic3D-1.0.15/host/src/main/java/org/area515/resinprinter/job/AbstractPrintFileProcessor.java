@@ -629,18 +629,28 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		logger.info("ExposureStart:{}", ()->Log4jTimer.startTimer(EXPOSURE_TIMER));
 		 
 		//2019/11/13 derby add for synchronied UVLed time
-		DisplayState state = aid.printer.getDisplayState();
+//		DisplayState state = aid.printer.getDisplayState();
 //		while(state != DisplayState.Finished) {
 //			Thread.sleep(10);
 //			state = aid.printer.getDisplayState();
 //		}
 		//2019/11/13 derby add for synchronied UVLed time
 		
-		if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {
-			aid.printer.setShutterOpen(true);
-			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
-			aid.printer.startExposureTiming();
-		}
+//		if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {
+//			aid.printer.setShutterOpen(true);
+//			aid.printer.startExposureTiming();
+//			if (needPerformAfterPause)
+//			{
+//				if (aid.slicingProfile.getResumeLayerExposureTime() < aid.printJob.getExposureTime())
+//					Thread.sleep(aid.printJob.getExposureTime());
+//				else
+//					Thread.sleep(aid.slicingProfile.getResumeLayerExposureTime());
+//			}
+//			else
+//				Thread.sleep(aid.printJob.getExposureTime());
+//			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
+//			
+//		}
 
 		if (aid.slicingProfile.getDetectionEnabled())
 		{
@@ -666,20 +676,22 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		if (needPerformAfterPause)
 		{
 			if (aid.slicingProfile.getResumeLayerExposureTime() < aid.printJob.getExposureTime())
-				Thread.sleep(aid.printJob.getExposureTime());
+				aid.printer.setShutterTime(aid.printJob.getExposureTime());
 			else
-				Thread.sleep(aid.slicingProfile.getResumeLayerExposureTime());
+				aid.printer.setShutterTime(aid.slicingProfile.getResumeLayerExposureTime());
 		}
 		else
-			Thread.sleep(aid.printJob.getExposureTime());
+			aid.printer.setShutterTime(aid.printJob.getExposureTime());
 		// FIXME: 2017/11/6 zyd add for increase exposure time if the job has been paused -e
+		aid.printer.startExposureTiming();
+		aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
+		aid.printer.stopExposureTiming();
 
-
-		if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {
-			aid.printer.setShutterOpen(false);
-			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
-			aid.printer.stopExposureTiming();
-		}
+//		if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {
+////			aid.printer.setShutterOpen(false);
+//			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
+//			aid.printer.stopExposureTiming();
+//		}
 
 		//Blank the screen
 		aid.printer.showBlankImage();

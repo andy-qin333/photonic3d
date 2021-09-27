@@ -49,6 +49,7 @@ public class TemplateEngine {
 				"LayerThickness", 
 				"bulbHours", 
 				"shutterOpen", 
+				"shutterTime",
 				"ZDir",
 				// FIXME: 2017/9/25 zyd add for parameters -s
 				"ZLiftFeedSpeed",
@@ -100,6 +101,7 @@ public class TemplateEngine {
 
 		root.put("now", new Date());
 		root.put("shutterOpen", printer.isShutterOpen() ? 255 : 0);
+		root.put("shutterTime", printer.getShutterTime());
 		root.put("bulbHours", printer.getCachedBulbHours());
 		root.put("CURSLICE", job.getCurrentSlice());
 		root.put("LayerThickness", printer.getConfiguration().getSlicingProfile().getSelectedInkConfig().getSliceHeight());
@@ -202,6 +204,7 @@ public class TemplateEngine {
 		Bindings bindings = engine.createBindings();
 		bindings.put("now", new Date());
 		bindings.put("$shutterOpen", printer.isShutterOpen() ? 255 : 0);
+		bindings.put("shutterTime", printer.getConfiguration().getSlicingProfile().getSelectedInkConfig().getExposureTime());
 		Integer bulbHours = printer.getCachedBulbHours();
 		bindings.put("$bulbHours", bulbHours == null || bulbHours < 0?Double.NaN:new Double(bulbHours));
 		bindings.put("$CURSLICE", job.getCurrentSlice());
