@@ -578,6 +578,233 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		return null;
 	}
 	
+	public JobStatus printImage(DataAid aid, BufferedImage sliceImage) throws ExecutionException, InterruptedException, InappropriateDeviceException, ScriptException {
+		if (aid == null) {
+			throw new IllegalStateException("initializeDataAid must be called before this method");
+		}
+
+		if (sliceImage == null) {
+			throw new IllegalStateException("You must specify a sliceImage to display");
+		}
+		
+		if (aid.customizer.getNextStep() != PrinterStep.PerformExposure) {
+			return null;
+		}
+		//logger.info("showImage:{derby}");
+//		aid.printer.showImage(sliceImage); //derby add for insure the img is ready
+		
+		//Start but don't wait for a potentially heavy weight operation to determine if we are out of ink.
+		if (aid.inkDetector != null) {
+			aid.inkDetector.startMeasurement();
+		}
+
+		if (!aid.printer.isPrintActive())
+		{
+			return aid.printer.getStatus();
+		}
+		aid.printer.showImage(sliceImage);  //derby modify,the fun need more time
+
+		//Determine the dynamic amount of time we should expose our resin
+		if (aid.slicingProfile.getExposureTimeCalculator() != null && aid.slicingProfile.getExposureTimeCalculator().trim().length() > 0) {
+			Number value = calculate(aid, aid.slicingProfile.getExposureTimeCalculator(), "exposure time script");
+			if (value != null) {
+				aid.printJob.setExposureTime(value.intValue());
+			}
+		}
+
+		// FIXME: 2018/5/14 zyd add for set delay time -s
+		if (aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator() != null && aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator().trim().length() > 0)
+		{
+			Number value = calculate(aid, aid.slicingProfile.getDelayTimeBeforeSolidifyCalculator(), "delay time before solidify script");
+			if (value != null) {
+				aid.printJob.setDelayTimeBeforeSolidify(value.intValue());
+			}
+		}
+		if (aid.printJob.getDelayTimeBeforeSolidify() > 0)
+		{
+			Thread.sleep(aid.printJob.getDelayTimeBeforeSolidify());
+		}
+		// FIXME: 2018/5/14 zyd add for set delay time -e
+
+		
+		logger.info("ExposureStart:{}", ()->Log4jTimer.startTimer(EXPOSURE_TIMER));
+		if (aid.slicingProfile.getDetectionEnabled())
+		{
+			Main.GLOBAL_EXECUTOR.submit(new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					try
+					{
+						performDetectDoorLimit(aid);
+						performDetectLedTemperature(aid);
+						performDetectResinType(aid);
+					} catch (Exception e)
+					{
+					}
+				}
+			});
+		}
+
+		//Sleep for the amount of time that we are exposing the resin.
+		// FIXME: 2017/11/6 zyd add for increase exposure time if the job has been paused -s
+		if (needPerformAfterPause)
+		{
+			if (aid.slicingProfile.getResumeLayerExposureTime() < aid.printJob.getExposureTime())
+				aid.printer.setShutterTime(aid.printJob.getExposureTime());
+			else
+				aid.printer.setShutterTime(aid.slicingProfile.getResumeLayerExposureTime());
+		}
+		else
+			aid.printer.setShutterTime(aid.printJob.getExposureTime());
+		// FIXME: 2017/11/6 zyd add for increase exposure time if the job has been paused -e
+		aid.printer.startExposureTiming();
+		aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
+		aid.printer.stopExposureTiming();
+		return null;
+	}
+	
+	public JobStatus PerformPostProcessing(DataAid aid) throws ExecutionException, InterruptedException, InappropriateDeviceException, ScriptException {
+		
+		 
+		//2019/11/13 derby add for synchronied UVLed time
+//		DisplayState state = aid.printer.getDisplayState();
+//		while(state != DisplayState.Finished) {
+//			Thread.sleep(10);
+//			state = aid.printer.getDisplayState();
+//		}
+		//2019/11/13 derby add for synchronied UVLed time
+		
+//		if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {
+//			aid.printer.setShutterOpen(true);
+//			aid.printer.startExposureTiming();
+//			if (needPerformAfterPause)
+//			{
+//				if (aid.slicingProfile.getResumeLayerExposureTime() < aid.printJob.getExposureTime())
+//					Thread.sleep(aid.printJob.getExposureTime());
+//				else
+//					Thread.sleep(aid.slicingProfile.getResumeLayerExposureTime());
+//			}
+//			else
+//				Thread.sleep(aid.printJob.getExposureTime());
+//			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
+//			
+//		}
+
+
+
+//		if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {
+////			aid.printer.setShutterOpen(false);
+//			aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeShutter(), false);
+//			aid.printer.stopExposureTiming();
+//		}
+
+		//Blank the screen
+		aid.printer.showBlankImage();
+
+		// FIXME: 2017/9/15 zyd add for set delay time -s
+		if (aid.slicingProfile.getDelayTimeAfterSolidify() > 0)
+		{
+			Thread.sleep(aid.slicingProfile.getDelayTimeAfterSolidify());
+		}
+		// FIXME: 2017/9/15 zyd add for set delay time -e
+
+		logger.info("ExposureTime:{}", ()->Log4jTimer.completeTimer(EXPOSURE_TIMER));
+
+		//Perform two actions at once here:
+		// 1. Pause if the user asked us to pause
+		// 2. Get out if the print is cancelled
+		// FIXME: 2017/9/18 zyd add for move z to min position as print job paused -s
+		if (!aid.printJob.isZLiftDistanceOverriden() && aid.slicingProfile.getzLiftDistanceCalculator() != null && aid.slicingProfile.getzLiftDistanceCalculator().trim().length() > 0) {
+			Number value = calculate(aid, aid.slicingProfile.getzLiftDistanceCalculator(), "lift distance script");
+			if (value != null) {
+				aid.printJob.setZLiftDistance(value.doubleValue());
+			}
+		}
+		// FIXME: 2017/9/25 zyd add for parameter -s
+		if (!aid.printJob.isZLiftFeedSpeedOverriden() && aid.slicingProfile.getzLiftFeedSpeedCalculator() != null && aid.slicingProfile.getzLiftFeedSpeedCalculator().trim().length() > 0) {
+			Number value = calculate(aid, aid.slicingProfile.getzLiftFeedSpeedCalculator(), "lift feed speed script");
+			if (value != null) {
+				aid.printJob.setZLiftFeedSpeed(value.doubleValue());
+			}
+		}
+
+		if (!aid.printJob.isZLiftFeedSpeedOverriden() && aid.slicingProfile.getzLiftRetractSpeedCalculator() != null && aid.slicingProfile.getzLiftRetractSpeedCalculator().trim().length() > 0) {
+			Number value = calculate(aid, aid.slicingProfile.getzLiftRetractSpeedCalculator(), "lift retract speed script");
+			if (value != null) {
+				aid.printJob.setZLiftRetractSpeed(value.doubleValue());
+			}
+		}
+		// FIXME: 2017/9/25 zyd add for parameter -e
+		//Perform the lift feed gcode manipulation
+		aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeLiftFeed(), false);
+
+		needPerformAfterPause = false;
+		while (true)
+		{
+			if (!aid.printer.isPrintActive())
+			{
+				return aid.printer.getStatus();
+			}
+
+			if (aid.printer.isPrintPaused())
+			{
+				needPerformAfterPause = true;
+
+				NotificationManager.jobChanged(aid.printer, aid.printJob);
+				if (aid.slicingProfile.getgCodeBeforePause() != null && aid.slicingProfile.getgCodeBeforePause().trim().length() > 0) {
+					aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeBeforePause(), false);
+				}
+				if (!aid.printer.waitForPauseIfRequired())
+				{
+					return aid.printer.getStatus();
+				}
+				NotificationManager.jobChanged(aid.printer, aid.printJob);
+			}
+
+			if (aid.slicingProfile.getDetectionEnabled())
+			{
+				if (needPerformAfterPause)
+				{
+					performDetectDoorLimit(aid);
+					performDetectLedTemperature(aid);
+					performDetectResinType(aid);
+				}
+				performDetectLiquidLevel(aid);
+			}
+
+			if (!aid.printer.isPrintPaused())
+			{
+				if (needPerformAfterPause)
+				{
+					if (aid.slicingProfile.getgCodeAfterPause() != null && aid.slicingProfile.getgCodeAfterPause().trim().length() > 0)
+					{
+						aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeAfterPause(), false);
+					}
+				}
+
+				break;
+			}
+		}
+		//Perform the lift retract gcode manipulation
+		aid.printer.getGCodeControl().executeGCodeWithTemplating(aid.printJob, aid.slicingProfile.getgCodeLiftRetract(), false);
+		// FIXME: 2017/9/18 zyd add for move z to min position as print job paused -e
+
+		Double buildArea = getBuildAreaMM(aid.printJob);
+		// Log slice settings (in JSON for extraction and processing)
+		logger.info("{ \"layer\": {}, \"exposureTime\": {}, \"liftDistance\": {}, \"liftFeedSpeed\": {} , \"liftRetractSpeed\": {} , \"layerAreaMM2\": {} }",
+			aid.printJob.getCurrentSlice(), aid.printJob.getExposureTime(), aid.printJob.getZLiftDistance(),
+			aid.printJob.getZLiftFeedSpeed(), aid.printJob.getZLiftRetractSpeed(), buildArea);
+		
+		//Perform area and cost manipulations for current slice
+		aid.printJob.addNewSlice(System.currentTimeMillis() - aid.currentSliceTime, buildArea);
+		//Notify the client that the printJob has increased the currentSlice
+		NotificationManager.jobChanged(aid.printer, aid.printJob);
+		moveToNextPrinterStep(aid.customizer, PrinterStep.PerformPreSlice);
+		return null;
+	}
+	
 	public JobStatus printImageAndPerformPostProcessing(DataAid aid, BufferedImage sliceImage) throws ExecutionException, InterruptedException, InappropriateDeviceException, ScriptException {
 		if (aid == null) {
 			throw new IllegalStateException("initializeDataAid must be called before this method");
@@ -591,7 +818,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 			return null;
 		}
 		//logger.info("showImage:{derby}");
-		aid.printer.showImage(sliceImage); //derby add for insure the img is ready
+//		aid.printer.showImage(sliceImage); //derby add for insure the img is ready
 		
 		//Start but don't wait for a potentially heavy weight operation to determine if we are out of ink.
 		if (aid.inkDetector != null) {
@@ -625,7 +852,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		}
 		// FIXME: 2018/5/14 zyd add for set delay time -e
 
-		//aid.printer.showImage(sliceImage);  derby modify,the fun need more time
+		aid.printer.showImage(sliceImage);  //derby modify,the fun need more time
 		logger.info("ExposureStart:{}", ()->Log4jTimer.startTimer(EXPOSURE_TIMER));
 		 
 		//2019/11/13 derby add for synchronied UVLed time

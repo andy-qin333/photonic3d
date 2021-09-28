@@ -159,12 +159,14 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 					if (status != null) {
 						break;
 					}
-					logger.info("test11");
+//					logger.info("test11");
 				//	while(!prepareImage.isDone()) {
 				//		Thread.sleep(300);
 				//		logger.info("waiting for render");
 				//	}
 					RenderedData imageData = prepareImage.get(); //derby 6-10 造成假死现象（真实原因是串口屏的硬件没连接，直接删除配置，导致了问题随机发生）
+					
+					status = printImage(dataAid, imageData.getPrintableImage());
 				
 					dataAid.cache.setCurrentRenderingPointer(imageFile);
 					if (imgIter.hasNext()) {
@@ -187,7 +189,9 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 						slicePending = false;
 					}
 					
-					status = printImageAndPerformPostProcessing(dataAid, imageData.getPrintableImage());
+					status = PerformPostProcessing(dataAid);
+					
+//					status = printImageAndPerformPostProcessing(dataAid, imageData.getPrintableImage());
 					
 					if (status != null) {
 						break;
