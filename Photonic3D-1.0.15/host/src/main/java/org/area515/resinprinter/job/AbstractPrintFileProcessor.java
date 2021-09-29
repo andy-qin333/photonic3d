@@ -646,6 +646,14 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 				}
 			});
 		}
+		
+//		2019/11/13 derby add for synchronied UVLed time
+		DisplayState state = aid.printer.getDisplayState();
+		while(state != DisplayState.Finished) {
+			Thread.sleep(10);
+			state = aid.printer.getDisplayState();
+		}
+//		2019/11/13 derby add for synchronied UVLed time
 
 		//Sleep for the amount of time that we are exposing the resin.
 		// FIXME: 2017/11/6 zyd add for increase exposure time if the job has been paused -s
@@ -668,13 +676,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 	public JobStatus PerformPostProcessing(DataAid aid) throws ExecutionException, InterruptedException, InappropriateDeviceException, ScriptException {
 		
 		 
-		//2019/11/13 derby add for synchronied UVLed time
-//		DisplayState state = aid.printer.getDisplayState();
-//		while(state != DisplayState.Finished) {
-//			Thread.sleep(10);
-//			state = aid.printer.getDisplayState();
-//		}
-		//2019/11/13 derby add for synchronied UVLed time
+
 		
 //		if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {
 //			aid.printer.setShutterOpen(true);

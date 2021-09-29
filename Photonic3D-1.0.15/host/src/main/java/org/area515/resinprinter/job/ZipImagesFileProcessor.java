@@ -166,9 +166,10 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 				//	}
 					RenderedData imageData = prepareImage.get(); //derby 6-10 造成假死现象（真实原因是串口屏的硬件没连接，直接删除配置，导致了问题随机发生）
 					
-					status = printImage(dataAid, imageData.getPrintableImage());
+					
 				
 					dataAid.cache.setCurrentRenderingPointer(imageFile);
+					status = printImage(dataAid, imageData.getPrintableImage());
 					if (imgIter.hasNext()) {
 						imageFile = imgIter.next();   
 						// FIXME: 2017/10/12 zyd add for support svg file -s
