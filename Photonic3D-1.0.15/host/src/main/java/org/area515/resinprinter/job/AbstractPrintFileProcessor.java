@@ -820,7 +820,7 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 			return null;
 		}
 		//logger.info("showImage:{derby}");
-//		aid.printer.showImage(sliceImage); //derby add for insure the img is ready
+		aid.printer.showImage(sliceImage); //derby add for insure the img is ready
 		
 		//Start but don't wait for a potentially heavy weight operation to determine if we are out of ink.
 		if (aid.inkDetector != null) {
@@ -854,15 +854,15 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 		}
 		// FIXME: 2018/5/14 zyd add for set delay time -e
 
-		aid.printer.showImage(sliceImage);  //derby modify,the fun need more time
+//		aid.printer.showImage(sliceImage);  //derby modify,the fun need more time
 		logger.info("ExposureStart:{}", ()->Log4jTimer.startTimer(EXPOSURE_TIMER));
 		 
 		//2019/11/13 derby add for synchronied UVLed time
-//		DisplayState state = aid.printer.getDisplayState();
-//		while(state != DisplayState.Finished) {
-//			Thread.sleep(10);
-//			state = aid.printer.getDisplayState();
-//		}
+		DisplayState state = aid.printer.getDisplayState();
+		while(state != DisplayState.Finished) {
+			Thread.sleep(10);
+			state = aid.printer.getDisplayState();
+		}
 		//2019/11/13 derby add for synchronied UVLed time
 		
 //		if (aid.slicingProfile.getgCodeShutter() != null && aid.slicingProfile.getgCodeShutter().trim().length() > 0) {

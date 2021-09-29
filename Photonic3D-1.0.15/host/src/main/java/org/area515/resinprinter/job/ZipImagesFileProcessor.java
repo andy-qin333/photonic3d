@@ -169,7 +169,7 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 					
 				
 					dataAid.cache.setCurrentRenderingPointer(imageFile);
-					status = printImage(dataAid, imageData.getPrintableImage());
+//					status = printImage(dataAid, imageData.getPrintableImage());
 					if (imgIter.hasNext()) {
 						imageFile = imgIter.next();   
 						// FIXME: 2017/10/12 zyd add for support svg file -s
@@ -190,9 +190,9 @@ public class ZipImagesFileProcessor extends CreationWorkshopSceneFileProcessor i
 						slicePending = false;
 					}
 					
-					status = PerformPostProcessing(dataAid);
+//					status = PerformPostProcessing(dataAid);
 					
-//					status = printImageAndPerformPostProcessing(dataAid, imageData.getPrintableImage());
+					status = printImageAndPerformPostProcessing(dataAid, imageData.getPrintableImage());
 					
 					if (status != null) {
 						break;
