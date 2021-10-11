@@ -40,7 +40,7 @@ import com.google.common.primitives.Bytes;
 
 public class UartScreenControl
 {
-    private String version = "0.6.01";  //derby on 2019-11-19
+    private String version = "0.6.02";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
