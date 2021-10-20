@@ -31,6 +31,7 @@ public class Printer {
 	private GraphicsOutputInterface refreshFrame;
 	private boolean started;
 	private boolean shutterOpen;
+	private int shutterTime;
 	private Integer bulbHours;
 	private long currentSlicePauseTime;
 	private String displayDeviceID;
@@ -283,7 +284,14 @@ public class Printer {
 	public void setShutterOpen(boolean shutterOpen) {
 		this.shutterOpen = shutterOpen;
 	}
-
+	public void setShutterTime(int shutterTime) {
+		this.shutterTime = shutterTime;
+	}
+	public int getShutterTime() {
+		return shutterTime;
+	}
+	
+	
 	@JsonIgnore
 	public Integer getBulbHours() {
 		if (bulbHours == null && projectorModel != null) {
