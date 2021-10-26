@@ -1,6 +1,6 @@
 package org.area515.resinprinter.uartscreen;
 
-import org.area515.resinprinter.printer.Language;
+//import org.area515.resinprinter.printer.Language;
 
 /**
  * Created by zyd on 2018/9/4.

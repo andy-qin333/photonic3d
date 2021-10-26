@@ -20,7 +20,8 @@ import javax.imageio.ImageIO;
 import org.area515.resinprinter.job.JobStatus;
 import org.area515.resinprinter.job.PrintJob;
 import org.area515.resinprinter.network.WirelessNetwork;
-import org.area515.resinprinter.printer.Language;
+import org.area515.resinprinter.uartscreen.Language;
+//import org.area515.resinprinter.printer.Language;
 import org.area515.resinprinter.printer.ParameterRecord;
 import org.area515.resinprinter.printer.Printer;
 import org.area515.resinprinter.server.HostProperties;
@@ -40,7 +41,7 @@ import com.google.common.primitives.Bytes;
 
 public class UartScreenControl
 {
-    private String version = "0.5.17";  //derby on 2019-11-19
+    private String version = "0.5.18";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
