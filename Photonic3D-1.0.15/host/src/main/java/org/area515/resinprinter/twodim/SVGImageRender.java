@@ -93,14 +93,44 @@ public class SVGImageRender extends CurrentImageRenderer
                         		image1.setRGB(j, i, monoPix);
                         	}
                         }
+//                        Graphics2D graphics2D = image1.createGraphics();
+//                        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//                        graphics2D.drawImage(image, null, 0, 0);
+                        
+                      //created by derby 2021-8-14, improve the code, 1 pixel(RGB) control->3 pixel
+                        int monoPix = 0;
+                        for(int i = 0; i < image1.getHeight(); i++) {
+                        	for(int j = 0; j < image1.getWidth(); j++) {
+                        		int pix0 = image.getRGB(j*3+2, i);
+                        		int pix1 = image.getRGB(j*3+1,i );
+                        		int pix2 = image.getRGB(j*3,i );
+                        		if(pix0 == pix1 && pix0 == pix2)
+                        		{
+                        			if(pix0 == 0xFF000000)
+                        				continue;
+                        			else if(pix0 == 0xFFFFFFFF)
+                        				monoPix = 0xFFFFFFFF;
+                        				
+                        		}
+                        		else {
+                        			{
+                        				monoPix = (pix0&0x000000FF) + (pix1&0x0000FF00) + (pix2&0x00FF0000) + 0xFF000000;
+                        			}
+								}
+                        		image1.setRGB(j, i, monoPix);
+//                        		if(pix0 == 0xFF000000 && pix1 == 0xFF000000 && pix2 == 0xFF000000)
+//                        			continue;
+//                        		if(pix0 != 0xFF000000)
+//                        			pix0 = pix0&0x000000FF;
+//                        		if(pix1 != 0xFF000000)
+//                        			pix1 = pix1&0x0000FF00;
+//                        		if(pix2 != 0xFF000000)
+//                        			pix2 = pix2&0x00FF0000;
+//                        		int monoPix = pix0 + pix1 + pix2; 
+//                        		image1.setRGB(j, i, monoPix);
+                        	}
+                        }
                         imagePointer[0] = image1;
-//                      File outputfile = new File("derby-test-mono.png"); //derby8-12 png 图片在photoshop中可以像素对应，便于调试
-//                      try {
-//						ImageIO.write(imagePointer[0], "png", outputfile);
-//					} catch (IOException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
                     }
                 };
                 trans.setTranscodingHints(transcoderHints);
@@ -109,6 +139,9 @@ public class SVGImageRender extends CurrentImageRenderer
 //                File outputfile = new File("derby-test.png");
 //                ImageIO.write(imagePointer[0], "png", outputfile);
               //created by derby 8-12, support the monoLCD, 1 pixel(RGB) control->3 pixel
+//                
+//                imagePointer[0] = monoImage;
+//                outputfile = new File("derby-test-mono.png"); //derby8-12 png 图片在photoshop中可以像素对应，便于调试
 //                BufferedImage monoImage = new BufferedImage(aid.xResolution/3, aid.yResolution, BufferedImage.TYPE_3BYTE_BGR);
 //                for(int i = 0; i < monoImage.getHeight(); i++) {
 //                	for(int j = 0; j < monoImage.getWidth(); j++) {
@@ -124,8 +157,9 @@ public class SVGImageRender extends CurrentImageRenderer
 //                	}
 //                }
 //                imagePointer[0] = monoImage;
-//                outputfile = new File("derby-test-mono.png"); //derby8-12 png 图片在photoshop中可以像素对应，便于调试
+//                File outputfile = new File("derby-test-mono.png"); //derby8-12 png 图片在photoshop中可以像素对应，便于调试
 //                ImageIO.write(imagePointer[0], "png", outputfile);
+            
             }
             catch (TranscoderException ex)
             {
