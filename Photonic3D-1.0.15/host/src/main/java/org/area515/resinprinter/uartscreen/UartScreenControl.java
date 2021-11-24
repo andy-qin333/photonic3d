@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.4.40";  //derby on 2019-11-19
+    private String version = "0.4.41";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
