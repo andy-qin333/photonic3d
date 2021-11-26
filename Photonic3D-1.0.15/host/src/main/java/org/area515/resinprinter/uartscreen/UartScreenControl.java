@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.5.06";  //derby on 2020-10-14 for ds300
+    private String version = "0.5.07";  //derby on 2020-10-14 for ds300
 
     //private int Page
     private Thread readThread;
@@ -441,7 +441,7 @@ public class UartScreenControl
 	            if (selected == i)
 	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
 	            else
-	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0x00, (byte)0x00});
+	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xFF, (byte)0xFF});
         	}
         	else if(modelNum.equals("3DTALK_DS200")) {
         		if (selected == i)
@@ -634,7 +634,7 @@ public class UartScreenControl
             if (selected == i)
                 writeText(UartScreenVar.desc_txt_network_list[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
             else
-                writeText(UartScreenVar.desc_txt_network_list[i], new byte[] {(byte)0x00, (byte)0x00});
+                writeText(UartScreenVar.desc_txt_network_list[i], new byte[] {(byte)0xFF, (byte)0xFF});
         }
     }
 
