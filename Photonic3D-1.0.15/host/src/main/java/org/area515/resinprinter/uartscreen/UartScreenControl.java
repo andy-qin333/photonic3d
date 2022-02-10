@@ -40,7 +40,7 @@ import com.google.common.primitives.Bytes;
 
 public class UartScreenControl
 {
-    private String version = "0.6.03";  //derby on 2019-11-19
+    private String version = "0.6.04";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -904,6 +904,16 @@ public class UartScreenControl
             	string = status.getStateString();//add by debry 2020/1/14
             
             //System.out.println(string+getLanguage());
+            ////用于显示5G欢迎界面。没有5g网络时，会不显示状态。需要查代码原因。
+            if(!MachineService.INSTANCE.getLocalIpAddress("usb0").isEmpty()) {
+            	writeText(UartScreenVar.addr_icon_5G_logo, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.signal5g)});
+            	System.out.println("No connection");
+            }
+            	
+            else {
+            	writeText(UartScreenVar.addr_icon_5G_logo, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.noSignal)});
+            	//System.out.println(MachineService.INSTANCE.getLocalIpAddress("usb0"));
+			}
         
 
             try {

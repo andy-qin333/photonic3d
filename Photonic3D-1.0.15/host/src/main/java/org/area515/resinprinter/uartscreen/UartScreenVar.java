@@ -101,6 +101,8 @@ public class UartScreenVar
     static final char addr_icon_lifetime_screen = 0x5141; //add by derby 2020/1/14
     //add by derby 2020/2/18 {hour_H，hour_L,min_H,min_L,sec_H,sec_L}
     static final char[] addr_icon_printTime = {0x5144, 0x5145, 0x5146, 0x5147, 0x5148, 0x5149};
+    static final char addr_icon_5G_logo = 0x5151;  ///add by derby 2021/1/20 for 5G demo
+    
     
     
     static final char addr_txt_machineStatus = 0x6000;
@@ -138,7 +140,9 @@ public class UartScreenVar
         LightSwitch,
         WaterSwitch,
         PresetImage,
-        FullScreenImage
+        FullScreenImage,
+        signal5g,
+        noSignal
     }
 
     public enum PagePos{
@@ -179,6 +183,10 @@ public class UartScreenVar
 	                pos = 67;
 	            else if (iconPos == IconPos.FullScreenImage)
 	                pos = 67;
+	            else if (iconPos == IconPos.signal5g)
+	            	pos = 61;
+	            else if (iconPos == IconPos.noSignal)
+	            	pos = 62;
         	}
         	else if(ModelNumber.equals("3DTALK_DS200"))  {
         		if (iconPos == IconPos.Empty0)
@@ -222,6 +230,10 @@ public class UartScreenVar
 	                pos = 67;
 	            else if (iconPos == IconPos.FullScreenImage)
 	                pos = 67;
+	            else if (iconPos == IconPos.signal5g)
+	            	pos = 61;
+	            else if (iconPos == IconPos.noSignal)
+	            	pos = 62;
         	}
         	else if(ModelNumber.equals("3DTALK_DS200")) {
         		if (iconPos == IconPos.Empty0)
