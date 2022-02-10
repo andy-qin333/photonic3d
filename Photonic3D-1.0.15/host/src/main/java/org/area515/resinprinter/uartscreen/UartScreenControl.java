@@ -41,7 +41,7 @@ import com.google.common.primitives.Bytes;
 
 public class UartScreenControl
 {
-    private String version = "0.5.19";  //derby on 2019-11-19
+    private String version = "0.6.00";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -1515,7 +1515,7 @@ public class UartScreenControl
             writeText(UartScreenVar.addr_txt_ipAddress, String.format("%-16s", "").getBytes());
         }
         //String modelNumber = HostProperties.Instance().getModelNumber();
-        writeText(UartScreenVar.addr_txt_modelNumber, String.format("%-16s", "Cubejet").getBytes());
+        writeText(UartScreenVar.addr_txt_modelNumber, String.format("%-16s", "DS280HD").getBytes());
     }
 
     private void action_update_software(byte[] payload)
