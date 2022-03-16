@@ -375,7 +375,7 @@ public abstract class GCodeControl {
 	
 	public String getSerialNumber() {
 		String strMsgString = sendGcode("V0!\r\n");
-		Pattern serialPattern = Pattern.compile("\\s*V:(H\\d+)");
+		Pattern serialPattern = Pattern.compile("\\s*V:([A-Z]\\d+)");
 		Matcher matcher = serialPattern.matcher(strMsgString);
 		if(matcher.find()) {
 			return matcher.group(1);
