@@ -1,11 +1,14 @@
 package org.area515.resinprinter.uartscreen;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -31,6 +34,7 @@ import org.area515.resinprinter.services.PrintableService;
 import org.area515.resinprinter.services.PrinterService;
 import org.area515.util.BasicUtillities;
 import org.area515.util.IOUtilities;
+import org.omg.PortableServer.ID_UNIQUENESS_POLICY_ID;
 
 import com.google.common.primitives.Bytes;
 
@@ -41,7 +45,7 @@ import com.google.common.primitives.Bytes;
 
 public class UartScreenControl
 {
-    private String version = "0.6.01";  //derby on 2019-11-19
+    private String version = "0.6.02";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -86,6 +90,7 @@ public class UartScreenControl
     private String update_path = "/udiskdir/update-dlp";
 //    private String update_path = "C:\\Users\\derby\\udiskdir\\update-dlp";
     private Timer shutterTimer;
+    private char last_uiID = 0;
 
 
     /*****************machine status******************/
@@ -116,6 +121,7 @@ public class UartScreenControl
             {
                 byte[] receive;
                 char cmd;
+                int key_value=0;
 
                 while (!isRead_stop) {
                     try {
@@ -129,10 +135,16 @@ public class UartScreenControl
                             continue;
                         printBytes(receive);
 
-                        cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(receive, 4, 2));
-                        if (cmd == UartScreenVar.addr_btn_file_ctrl)
-                            action_file_ctrl(receive);
-                        else if (cmd == UartScreenVar.addr_btn_print_ctrl)
+                        cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(receive, 3, 2));
+
+
+                        if (cmd == UartScreenVar.addr_btn_file_ctrl )
+                            action_file_ctrl(receive, true);
+                        else if(cmd == UartScreenVar.addr_btn_file_usb_ctrl)
+                        	action_file_ctrl(receive, false);
+                        else if (cmd == UartScreenVar.addr_btn_mainUI || cmd == UartScreenVar.addr_btn_print_ctrl || 
+                        		cmd == UartScreenVar.addr_btn_print_pause  || 
+                        		cmd == UartScreenVar.addr_btn_print_suretoStop)
                             action_print_ctrl(receive);
                         else if (cmd == UartScreenVar.addr_btn_network)
                             action_network(receive);
@@ -144,27 +156,34 @@ public class UartScreenControl
                             action_move_control(receive);
                         else if (cmd == UartScreenVar.addr_btn_optical_control)
                             action_optical_control(receive);
-                        else if (cmd == UartScreenVar.addr_btn_replace_part)
+                        else if (cmd == UartScreenVar.addr_btn_replace_part )
                             action_replace_part(receive);
                         else if (cmd == UartScreenVar.addr_btn_led_pwm_adjust)
                             action_led_pwm_adjust(receive);
-                        else if (cmd == UartScreenVar.addr_btn_clear_trough)
+                        else if (cmd == UartScreenVar.addr_btn_clear_trough )
                             action_clear_trough(receive);
                         else if (cmd == UartScreenVar.addr_btn_about)
                             action_about();
-                        else if (cmd == UartScreenVar.addr_btn_update_software)
+                        else if (cmd == UartScreenVar.addr_btn_update_software || cmd == UartScreenVar.addr_btn_update_software_failed)
                             action_update_software(receive);
-                        else if (cmd == UartScreenVar.addr_btn_update_firmware)
+                        else if (cmd == UartScreenVar.addr_btn_update_firmware || cmd == UartScreenVar.addr_btn_update_firmware_failed)
                             action_update_firmware(receive);
-                        else if (cmd == UartScreenVar.addr_txt_networkPsk)
+                        else if (cmd == UartScreenVar.addr_btn_network_psk)
                             action_set_network_psk(receive);
                         else if (cmd == UartScreenVar.addr_txt_admin_password)
                             action_set_admin_password(receive);
-                        else if (cmd >= UartScreenVar.addr_txt_parameters[0] &&
-                                cmd <= UartScreenVar.addr_txt_parameters[UartScreenVar.addr_txt_parameters.length - 1])
-                            action_parameters_set(receive);
-                        else if (cmd == UartScreenVar.addr_txt_led_pwm)
-                            action_set_led_pwm(receive);
+                        else if ( cmd == UartScreenVar.addr_btn_info_success || cmd == UartScreenVar.addr_btn_info_fail) {
+                        	if(receive[2] == 0x11)
+                            	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(receive, 5, 2));
+                        	if(key_value == 2)
+                        		goPage(last_uiID);
+                        }
+                        	
+//                        else if (cmd >= UartScreenVar.addr_txt_parameters[0] &&
+//                                cmd <= UartScreenVar.addr_txt_parameters[UartScreenVar.addr_txt_parameters.length - 1])
+//                            action_parameters_set(receive);
+//                        else if (cmd == UartScreenVar.addr_txt_led_pwm)
+//                            action_set_led_pwm(receive);
 
                     }
                     catch (InterruptedException | IOException e) {
@@ -257,6 +276,21 @@ public class UartScreenControl
     {
         startReadThread();
         startWriteThread();
+        
+        int lang = getLanguage();
+        byte[] bytes = new byte[] {(byte)0xEE, (byte)0xC1};
+        if(lang == Language.CN.ordinal())
+        	bytes = BasicUtillities.bytesCat(bytes, new byte[] {(byte)0x00, (byte)0xC1});
+        else if(lang == Language.EN.ordinal()) {
+        	bytes = BasicUtillities.bytesCat(bytes, new byte[] {(byte)0x01, (byte)0xC2});
+        }
+        bytes = BasicUtillities.bytesCat(bytes, new byte[] {(byte)0xFF, (byte)0xFC, (byte)0xFF, (byte)0xFF});
+        try {
+            writeQueue.put(bytes);
+        }
+        catch (InterruptedException e) {
+            System.out.println(e.toString());
+        }
 
         Main.GLOBAL_EXECUTOR.submit(new Runnable() {
             @Override
@@ -297,11 +331,76 @@ public class UartScreenControl
         return this.printer;
     }
 
+    private void writeTextWith2Address(char address[], byte[] content)
+    {
+        byte[] bytes_end = new byte[] {(byte)0xFF, (byte)0xFC, (byte)0xFF, (byte)0xFF};
+        byte[] bytes = BasicUtillities.bytesCat(new byte[]{(byte)0xEE, (byte)0xB1, 0x10}, BasicUtillities.charToBytes(address[0]));
+        bytes = BasicUtillities.bytesCat(bytes, BasicUtillities.charToBytes(address[1]));
+        bytes = BasicUtillities.bytesCat(bytes, content);
+        bytes = BasicUtillities.bytesCat(bytes, bytes_end);
+
+        try {
+            writeQueue.put(bytes);
+        }
+        catch (InterruptedException e) {
+            System.out.println(e.toString());
+        }
+    }
+    
+    private void setTextColorWith2Address(char address[], byte[] content)
+    {
+    	byte[] bytes_end = new byte[] {(byte)0xFF, (byte)0xFC, (byte)0xFF, (byte)0xFF};
+        byte[] bytes = BasicUtillities.bytesCat(new byte[]{(byte)0xEE, (byte)0xB1, 0x19}, BasicUtillities.charToBytes(address[0]));
+        bytes = BasicUtillities.bytesCat(bytes, BasicUtillities.charToBytes(address[1]));
+        bytes = BasicUtillities.bytesCat(bytes, content);
+        bytes = BasicUtillities.bytesCat(bytes, bytes_end);
+        printBytes(bytes);
+
+        try {
+            writeQueue.put(bytes);
+        }
+        catch (InterruptedException e) {
+            System.out.println(e.toString());
+        }
+    }
+    
+    private void setIconWith2Address(char address[], byte[] content)
+    {
+    	byte[] bytes_end = new byte[] {(byte)0xFF, (byte)0xFC, (byte)0xFF, (byte)0xFF};
+        byte[] bytes = BasicUtillities.bytesCat(new byte[]{(byte)0xEE, (byte)0xB1, 0x23}, BasicUtillities.charToBytes(address[0]));
+        bytes = BasicUtillities.bytesCat(bytes, BasicUtillities.charToBytes(address[1]));
+        bytes = BasicUtillities.bytesCat(bytes, content);
+        bytes = BasicUtillities.bytesCat(bytes, bytes_end);
+
+        try {
+            writeQueue.put(bytes);
+        }
+        catch (InterruptedException e) {
+            System.out.println(e.toString());
+        }
+    }
+    
+    private void setBtnWith2Address(char address[], byte[] content)
+    {
+    	byte[] bytes_end = new byte[] {(byte)0xFF, (byte)0xFC, (byte)0xFF, (byte)0xFF};
+        byte[] bytes = BasicUtillities.bytesCat(new byte[]{(byte)0xEE, (byte)0xB1, 0x10}, BasicUtillities.charToBytes(address[0]));
+        bytes = BasicUtillities.bytesCat(bytes, BasicUtillities.charToBytes(address[1]));
+        bytes = BasicUtillities.bytesCat(bytes, content);
+        bytes = BasicUtillities.bytesCat(bytes, bytes_end);
+
+        try {
+            writeQueue.put(bytes);
+        }
+        catch (InterruptedException e) {
+            System.out.println(e.toString());
+        }
+    }
+    
+    
     private void writeText(char address, byte[] content)
     {
-        byte[] bytes;
-        int len = content.length + 3;
-        bytes = BasicUtillities.bytesCat(new byte[]{0x5A, (byte) 0xA5, (byte) len, (byte) 0x82}, BasicUtillities.charToBytes(address));
+        
+        byte[] bytes = new byte[]{(byte)0xEE, (byte)0xB1, 0x10, (byte) address};
         bytes = BasicUtillities.bytesCat(bytes, content);
 
         try {
@@ -344,7 +443,7 @@ public class UartScreenControl
         
         ////modified by derby for new dwin 10.1 panel
         //bytes = new byte[]{0x5A, (byte) 0xA5, 0x04, (byte) 0x80, 0x03, 0x00, (byte) page};
-        bytes = new byte[]{0x5A, (byte) 0xA5, 0x07, (byte) 0x82, 0x00, (byte) 0x84, 0x5A, 0x01, 0x00, (byte) page};
+        bytes = new byte[]{(byte)0xEE, (byte) 0xB1, 0x00, 0x00, (byte) page, (byte)0xFF, (byte) 0xFC, (byte)0xFF,(byte)0xFF};
 
         try {
             writeQueue.put(bytes);
@@ -377,9 +476,9 @@ public class UartScreenControl
     {
         try {
             if (status == JobStatus.ErrorScreen)
-                writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", new String(new char[] {0x5C4F, 0x5E55, 0x9519, 0x8BEF})).getBytes("GBK"));//鐏炲繐绠烽柨娆掝嚖
+                writeTextWith2Address(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", new String(new char[] {0x5C4F, 0x5E55, 0x9519, 0x8BEF})).getBytes("GBK"));//鐏炲繐绠烽柨娆掝嚖
             else if (status == JobStatus.ErrorControlBoard)
-                writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", new String(new char[] {0x63A7, 0x5236, 0x7248, 0x9519, 0x8BEF})).getBytes("GBK"));//閹貉冨煑閺夊潡鏁婄拠锟�
+            	writeTextWith2Address(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", new String(new char[] {0x63A7, 0x5236, 0x7248, 0x9519, 0x8BEF})).getBytes("GBK"));//閹貉冨煑閺夊潡鏁婄拠锟�
             while (!writeQueue.isEmpty())
                 Thread.sleep(100);
         }
@@ -428,14 +527,18 @@ public class UartScreenControl
             }
             try {
                	byte[] sendString = String.format("%-64s", file).getBytes("UTF-16BE");
-                writeText(UartScreenVar.addr_txt_fileList[i], sendString);//String.format("%-32s", file).getBytes("Unicode"));
+               	if(whichDir.equals("udisk"))
+               		writeTextWith2Address(UartScreenVar.addr_txt_usb_fileList[i], sendString);//String.format("%-32s", file).getBytes("Unicode"));
+               	else {
+               		writeTextWith2Address(UartScreenVar.addr_txt_fileList[i], sendString);//String.format("%-32s", file).getBytes("Unicode"));
+				}
             }
             catch (UnsupportedEncodingException e) {
                 System.out.println(e.toString());
             }
         }
-        clearProgBar(getModelNumber());
-        showFilePageNumber();
+//        clearProgBar(getModelNumber());
+//        showFilePageNumber();
 
         fileHighLight(cur_file_selected,getModelNumber());
     }
@@ -458,16 +561,21 @@ public class UartScreenControl
 
         for (int i = 0; i < fileCnt; i++) {
         	if(modelNum.equals("3DTALK_DF200") || getModelNumber().equals("3DTALK_DS200_MONO")) {
-	            if (selected == i)
-	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
-	            else
-	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0x00, (byte)0x00});
+	            if (selected == i) {
+	            	setTextColorWith2Address(UartScreenVar.addr_txt_fileList[i], new byte[] {(byte)0xF8,0x00});
+	            	setTextColorWith2Address(UartScreenVar.addr_txt_usb_fileList[i], new byte[] {(byte)0xF8,0x00}); //the second param is text's color
+	            }
+	            else {
+	            	setTextColorWith2Address(UartScreenVar.addr_txt_fileList[i], new byte[] {(byte)0x00,0x00});
+	            	setTextColorWith2Address(UartScreenVar.addr_txt_usb_fileList[i], new byte[] {(byte)0xF00,0x00}); //the second param is text's color
+	            }
+	            	
         	}
         	else if(getModelNumber().equals("3DTALK_DS200"))  {
         		if (selected == i)
-	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
+        			setTextColorWith2Address(UartScreenVar.addr_txt_fileList[i], new byte[] {(byte)0xF8}); //the second param is text's color
 	            else
-	                writeText(UartScreenVar.desc_txt_fileList[i], new byte[] {(byte)0xFF, (byte)0xFF});
+	            	setTextColorWith2Address(UartScreenVar.addr_txt_fileList[i], new byte[] {(byte)0xF8});
         	}
         }
     }
@@ -580,21 +688,37 @@ public class UartScreenControl
         if (filename != null) {
             jobPrint(filename);
             goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Main));
+            setIconWith2Address(UartScreenVar.addr_icon_pause, new byte[] {0x02});
+            setIconWith2Address(UartScreenVar.addr_icon_stop, new byte[] {0x03});
         }
     }
 
     private void pauseJob()
     {
         jobPause();
+//        setIconWith2Address(UartScreenVar.addr_icon_pause, new byte[] {0x01});
     }
 
     private void stopJob()
     {
         jobStop();
+        goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Main));
+//        setIconWith2Address(UartScreenVar.addr_icon_pause, new byte[] {0x04});
+//        setIconWith2Address(UartScreenVar.addr_icon_stop, new byte[] {0x04});
     }
 
     private List<WirelessNetwork> getNetworks()
     {
+    	//mock wifi list
+//    	List<WirelessNetwork> wifiList = new ArrayList<WirelessNetwork>();
+//    	for(int i=0;i<10;i++) {
+//    		WirelessNetwork w1 = new WirelessNetwork();
+//    		w1.setSsid("wifi"+ i);
+//    		wifiList.add(w1);
+//    	}
+//    	WirelessNetwork w1 = new WirelessNetwork();
+//    	w1.setSsid("wifi1");
+//    	return wifiList;
         return MachineService.INSTANCE.getWirelessNetworks();
     }
 
@@ -630,7 +754,7 @@ public class UartScreenControl
                 network = network_list.get(i + cur_network_page * 5).getSsid();
             }
             try {
-                writeText(UartScreenVar.addr_txt_network_List[i], String.format("%-32s", network).getBytes("UTF-16BE"));
+            	writeTextWith2Address(UartScreenVar.addr_txt_network_List[i], String.format("%-32s", network).getBytes("UTF-16BE"));
                 //System.out.println(network);
             }
             catch (UnsupportedEncodingException e) {
@@ -654,16 +778,16 @@ public class UartScreenControl
 
         for (int i = 0; i < 5; i++) {
             if (selected == i)
-                writeText(UartScreenVar.desc_txt_network_list[i], new byte[] {(byte)0xF8, 0x00}); //the second param is text's color
+            	setTextColorWith2Address(UartScreenVar.addr_txt_network_List[i], new byte[] {(byte)0xF8,0x00}); //the second param is text's color
             else
-                writeText(UartScreenVar.desc_txt_network_list[i], new byte[] {(byte)0x00, (byte)0x00});
+            	setTextColorWith2Address(UartScreenVar.addr_txt_network_List[i], new byte[] {(byte)0x00,0x00});
         }
     }
 
     private void connectNetwork(String ssid, String psk)
     {
         boolean hasSsid = false;
-        writeKey((short)116,(short)16);
+        goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.connecting));
         for (WirelessNetwork network : getNetworks()) {
             if (network.getSsid().equals(ssid)) {
                 hasSsid = true;
@@ -680,15 +804,11 @@ public class UartScreenControl
                                     Thread.sleep(3000);
                                     ipAddress = getIpAddress();
                                     if (ipAddress != null) {
-                                        writeKey((short)120,(short)120);
-                                        Thread.sleep(500);
-                                        writeKey((short)16,(short)16);
+                                    	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.operation_success));
                                         break;
                                     }
                                     else if (count == 0) {
-                                        writeKey((short)120,(short)120);
-                                        Thread.sleep(500);
-                                        writeKey((short)66,(short)16);
+                                    	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.operation_fail));
                                     }
                                 }
                             }
@@ -700,27 +820,28 @@ public class UartScreenControl
                 }
                 else
                 {
-                    writeKey((short)16,(short)16);
+                	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.operation_fail));
                     try {
                         Thread.sleep(500);
                     }
                     catch (InterruptedException e) {
                         System.out.println(e.toString());
                     }
-                    writeKey((short)66,(short)16);
+//                    writeKey((short)66,(short)16);
                 }
                 break;
             }
         }
         if (!hasSsid) {
-            writeKey((short)16,(short)16);
-            try {
-                Thread.sleep(500);
-            }
-            catch (InterruptedException e) {
-                System.out.println(e.toString());
-            }
-            writeKey((short)66,(short)16);
+        	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.operation_fail));
+//            writeKey((short)16,(short)16);
+//            try {
+//                Thread.sleep(500);
+//            }
+//            catch (InterruptedException e) {
+//                System.out.println(e.toString());
+//            }
+//            writeKey((short)66,(short)16);
         }
     }
 
@@ -738,7 +859,7 @@ public class UartScreenControl
     {
         this.network_ssid = ssid;
         try {
-			writeText(UartScreenVar.addr_txt_networkSsid, String.format("%-32s", ssid).getBytes("UTF-16BE"));
+        	writeTextWith2Address(UartScreenVar.addr_txt_networkSsid, String.format("%-32s", ssid).getBytes("UTF-16BE"));
 		} catch (UnsupportedEncodingException e) {
 			
 			System.out.println(e.toString());
@@ -770,22 +891,24 @@ public class UartScreenControl
         delayTimeForAirPump = getPrinter().getConfiguration().getSlicingProfile().getDelayTimeForAirPump();
         parameterEnabled = getPrinter().getConfiguration().getSlicingProfile().getParameterEnabled();
         detectionEnabled = getPrinter().getConfiguration().getSlicingProfile().getDetectionEnabled();
+        
+        String strNumber = Integer.toString(numberOfFirstLayers);
 
-        writeText(UartScreenVar.addr_txt_parameters[0], new byte[] { (byte) ((numberOfFirstLayers >> 8) & 0xFF), (byte) (numberOfFirstLayers & 0xFF)});
-        writeText(UartScreenVar.addr_txt_parameters[1], new byte[] { (byte) ((firstLayerTime >> 8) & 0xFF), (byte) (firstLayerTime & 0xFF)});
-        writeText(UartScreenVar.addr_txt_parameters[2], new byte[] { (byte) ((layerTime >> 8) & 0xFF), (byte) (layerTime & 0xFF)});
-        writeText(UartScreenVar.addr_txt_parameters[3], new byte[] { (byte) ((resumeLayerTime >> 8) & 0xFF), (byte) (resumeLayerTime & 0xFF)});
-        writeText(UartScreenVar.addr_txt_parameters[4], new byte[] { (byte) ((((int)(liftDistance*10)) >> 8) & 0xFF), (byte) (((int)(liftDistance*10)) & 0xFF)});
-        writeText(UartScreenVar.addr_txt_parameters[5], new byte[] { (byte) ((((int)(liftFeedSpeed*10)) >> 8) & 0xFF), (byte) (((int)(liftFeedSpeed*10)) & 0xFF)});
-        writeText(UartScreenVar.addr_txt_parameters[6], new byte[] { (byte) ((((int)(liftRetractSpeed*10)) >> 8) & 0xFF), (byte) (((int)(liftRetractSpeed*10)) & 0xFF)});
-        writeText(UartScreenVar.addr_txt_parameters[7], new byte[] { (byte) ((delayTimeBeforeSolidify >> 8) & 0xFF), (byte) (delayTimeBeforeSolidify & 0xFF)});
-        writeText(UartScreenVar.addr_txt_parameters[8], new byte[] { (byte) ((delayTimeAfterSolidify >> 8) & 0xFF), (byte) (delayTimeAfterSolidify & 0xFF)});
-        writeText(UartScreenVar.addr_txt_parameters[9], new byte[] { (byte) ((delayTimeAsLiftedTop >> 8) & 0xFF), (byte) (delayTimeAsLiftedTop & 0xFF)});
-        writeText(UartScreenVar.addr_txt_parameters[10], new byte[] { (byte) ((delayTimeForAirPump >> 8) & 0xFF), (byte) (delayTimeForAirPump & 0xFF)});
+        writeTextWith2Address(UartScreenVar.addr_txt_parameters[0], strNumber.getBytes());
+        writeTextWith2Address(UartScreenVar.addr_txt_parameters[1], Integer.toString(firstLayerTime).getBytes());
+        writeTextWith2Address(UartScreenVar.addr_txt_parameters[2], Integer.toString(layerTime).getBytes());
+        writeTextWith2Address(UartScreenVar.addr_txt_parameters[3], Integer.toString(resumeLayerTime).getBytes());
+        writeTextWith2Address(UartScreenVar.addr_txt_parameters[4], Double.toString(liftDistance).getBytes());
+        writeTextWith2Address(UartScreenVar.addr_txt_parameters[5], Double.toString(liftFeedSpeed).getBytes());
+        writeTextWith2Address(UartScreenVar.addr_txt_parameters[6], Double.toString(liftRetractSpeed).getBytes());
+        writeTextWith2Address(UartScreenVar.addr_txt_parameters[7], Integer.toString(delayTimeBeforeSolidify).getBytes());
+        writeTextWith2Address(UartScreenVar.addr_txt_parameters[8], Integer.toString(delayTimeAfterSolidify).getBytes());
+        writeTextWith2Address(UartScreenVar.addr_txt_parameters[9], Integer.toString(delayTimeAsLiftedTop).getBytes());
+        //writeTextWith2Address(UartScreenVar.addr_txt_parameters[10], new byte[] { (byte) ((delayTimeForAirPump >> 8) & 0xFF), (byte) (delayTimeForAirPump & 0xFF)});
         if (parameterEnabled)
-            writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 65});
+        	setBtnWith2Address(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x01});
         else
-            writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 64});
+        	setBtnWith2Address(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00});
         if (detectionEnabled)
             writeText(UartScreenVar.addr_icon_detection_enabled, new byte[] {0x00, 67});
         else
@@ -810,9 +933,9 @@ public class UartScreenControl
         PrinterService.INSTANCE.savePrinter(getPrinter());
     }
 
-    private void setVersion(String version, char type)
+    private void setVersion(String version, char[] type)
     {
-        writeText(type, String.format("%-10s", version).getBytes());
+    	writeTextWith2Address(type, String.format("%-10s", version).getBytes());
     }
 
     private void setLiftTime()
@@ -821,24 +944,25 @@ public class UartScreenControl
 
         long ledUsedTime = getPrinter().getLedUsedTime();
         string = String.format("%.1f/%d", ledUsedTime/(60*60*1000.0), 5000);
-        writeText(UartScreenVar.addr_txt_lifetime_led, String.format("%-10s", string).getBytes());
-        writeText(UartScreenVar.addr_icon_lifetime_led, new byte[] {0x00, (byte)(102 - ledUsedTime / (60*60*1000.0*1000))}); //add by derby 2020/1/14 led_life icon
+        double led_num = 5 - ledUsedTime / (60*60*1000*5000)*100/20;
+        writeTextWith2Address(UartScreenVar.addr_txt_lifetime_led, String.format("%-10s", string).getBytes());
+        setIconWith2Address(UartScreenVar.addr_icon_lifetime_led, new byte[] {(byte)(5 - ledUsedTime / (60*60*1000.0*5000)*100/20)}); //add by derby 2020/1/14 led_life icon
 
         long screenUsedTime = getPrinter().getScreenUsedTime();
-        string = String.format("%.1f/%d", screenUsedTime/(60*60*1000.0), 1000);
-        writeText(UartScreenVar.addr_txt_lifetime_screen, String.format("%-10s", string).getBytes());
-        writeText(UartScreenVar.addr_icon_lifetime_screen, new byte[] {0x00, (byte)(102 - screenUsedTime / (60*60*1000.0*200))}); //add by derby 2020/1/14 screen_life icon
+        string = String.format("%.1f/%d", screenUsedTime/(60*60*1000.0), 2000);
+        writeTextWith2Address(UartScreenVar.addr_txt_lifetime_screen, String.format("%-10s", string).getBytes());
+        setIconWith2Address(UartScreenVar.addr_icon_lifetime_screen, new byte[] {(byte)(5 - screenUsedTime / (60*60*1000.0*2000)*100/20)}); //add by derby 2020/1/14 screen_life icon
     }
 
     private void loadAdminAccount(String password)
     {
-        writeText(UartScreenVar.addr_txt_admin_password, String.format("%-16s", "").getBytes());
+//        writeText(UartScreenVar.addr_txt_admin_password, String.format("%-16s", "").getBytes());
         if (password.equals("123")) {
             goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Admin));
-            setLiftTime();
+//            setLiftTime();
         }
         else {
-            writeKey((short)16,(short)16);
+        	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.operation_fail));
         }
     }
 
@@ -893,7 +1017,7 @@ public class UartScreenControl
         }
 
         if (hide) {
-            writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", "").getBytes());
+        	writeTextWith2Address(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", "").getBytes());
         }
         else if (force) {
             String string;
@@ -908,18 +1032,18 @@ public class UartScreenControl
         
 
             try {
-                writeText(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", string).getBytes("UTF-16BE")); //derby 1-14
+            	writeTextWith2Address(UartScreenVar.addr_txt_machineStatus, String.format("%-32s", string).getBytes("UTF-16")); //derby 1-14
                 if (status == JobStatus.Printing) 
-                	writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Pause)});
+                	setIconWith2Address(UartScreenVar.addr_icon_pause, new byte[] {0x02});
                     
                 else if (status.isPaused()) 
-                	writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Print)});
+                	setIconWith2Address(UartScreenVar.addr_icon_pause, new byte[] {0x01});
                 else
-                    writeText(UartScreenVar.addr_icon_pause, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty0)});
+                	setIconWith2Address(UartScreenVar.addr_icon_pause, new byte[] {0x04});
                 if (status.isPrintActive())
-                	writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Stop)});
+                	setIconWith2Address(UartScreenVar.addr_icon_stop, new byte[] {0x03});
                 else
-                    writeText(UartScreenVar.addr_icon_stop, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty0)});
+                	setIconWith2Address(UartScreenVar.addr_icon_stop, new byte[] {0x04});
             }
             catch (UnsupportedEncodingException e) {
                 System.out.println(e.toString());
@@ -937,14 +1061,14 @@ public class UartScreenControl
 
         if (hide) {
             try {
-				writeText(UartScreenVar.addr_txt_printFileName, String.format("%-32s", fileName).getBytes("UTF-16BE"));
+            	writeTextWith2Address(UartScreenVar.addr_txt_printFileName, String.format("%-32s", fileName).getBytes("UTF-16BE"));
 			} catch (UnsupportedEncodingException e) {
 				System.out.println(e.toString());
 			}
         }
         else if (force) {
             try {
-                writeText(UartScreenVar.addr_txt_printFileName, String.format("%-32s", this.printFileName).getBytes("UTF-16BE")); //derby 1-14
+            	writeTextWith2Address(UartScreenVar.addr_txt_printFileName, String.format("%-32s", this.printFileName).getBytes("UTF-16BE")); //derby 1-14
             }
             catch (UnsupportedEncodingException e) {
                 System.out.println(e.toString());
@@ -960,26 +1084,27 @@ public class UartScreenControl
         }
 
         if (hide) {
-            writeText(UartScreenVar.addr_txt_printProgress, String.format("%-10s", "").getBytes());
+        	writeTextWith2Address(UartScreenVar.addr_txt_printProgress, String.format("%-10s", "").getBytes());
+        	setIconWith2Address(UartScreenVar.addr_icon_printProgress, new byte[] {0x00});
             if(getModelNumber().equals("3DTALK_DS200_MONO")){
             	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)});
-            	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(78)});
+//            	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(78)});
             }
         }
         else if (force) {
             String string = String.format("%.1f%%", printProgress);
-            writeText(UartScreenVar.addr_txt_printProgress, String.format("%-10s", string).getBytes());
-            if(getModelNumber().equals("3DTALK_DS200_MONO")){
-            	if(printProgress < 60) {
-                	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(79 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
-                	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)});
-                }
-                else if(printProgress >= 60 && printProgress < 100){
-                	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(84 + (printProgress-60) / 20)}); //add by derby 2020/9/24 for ds300
-    			}
-            }
-            else
-            	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(81 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
+            writeTextWith2Address(UartScreenVar.addr_txt_printProgress, String.format("%-10s", string).getBytes());
+//            if(getModelNumber().equals("3DTALK_DS200_MONO")){
+//            	if(printProgress < 60) {
+//                	writeText(UartScreenVar.addr_icon_printProgress, new byte[] {0x00, (byte)(79 + printProgress / 20)}); //add by derby 2020/1/14 progress icon
+//                	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(83)});
+//                }
+//                else if(printProgress >= 60 && printProgress < 100){
+//                	writeText(UartScreenVar.addr_icon_printProgress_ex, new byte[] {0x00, (byte)(84 + (printProgress-60) / 20)}); //add by derby 2020/9/24 for ds300
+//    			}
+//            }
+//            else
+            	setIconWith2Address(UartScreenVar.addr_icon_printProgress, new byte[] {(byte)(printProgress / 20)}); //add by derby 2020/1/14 progress icon
         }
     }
 
@@ -1016,7 +1141,7 @@ public class UartScreenControl
             			((this.remainingTime%60000)/1000)%10};	//sec_L
             	
             	for(int i=0;i<7;i++) {
-            		writeText(UartScreenVar.addr_icon_printTime[i], new byte[] {0x00, (byte)(104+timeArray[i])});
+            		setIconWith2Address(UartScreenVar.addr_icon_printTime[i], new byte[] {(byte)(timeArray[i])});
         	}
         	
         	
@@ -1026,7 +1151,7 @@ public class UartScreenControl
     /****************************notify uartscreen state -end*************************************/
 
     /***************************action function -start**************************************/
-    private void action_file_ctrl(byte[] payload)
+    private void action_file_ctrl(byte[] payload, boolean isLocalfile)
     {
         if (payload.length < 9)
             return;
@@ -1037,43 +1162,59 @@ public class UartScreenControl
     		fileCnt = 4;
     	else 
        	 	fileCnt = 5;
-        int key_value = payload[8];
+    	
+    	char cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
+        int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
+        else if(payload[2] == 0x01)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 14, 2));
+        String cur_dir = "local";
+        if(!isLocalfile)
+        	cur_dir = "udisk";
 
-        if(key_value >= 0x00 && key_value <= 0x04) //閺傚洣娆㈤柅澶嬪
-            filesUpdate(cur_file_dir, key_value+cur_file_page*fileCnt);
-        else if (key_value == 0x05) //閺堫剙婀撮弬鍥︽
+        if(key_value >= 19 && key_value <= 22) //select file
+            filesUpdate(cur_dir, key_value-19+cur_file_page*fileCnt);
+        else if ((key_value == 0x0006 || key_value ==0x0002) && isLocalfile) //local file
             filesUpdate("local", 0);
-        else if (key_value == 0x06) //U閻╂ɑ鏋冩禒锟�
+        else if (key_value == 0x0006 && !isLocalfile) //udisk file
             filesUpdate("udisk", 0);
-        else if (key_value == 0x07) //鍚戜笅缈婚〉
+        else if (key_value == 0x0007 ) //up
             filesUpdate(cur_file_dir, cur_file_selected-fileCnt);
-        else if (key_value == 0x08) //鍚戜笂缈婚〉
+        else if (key_value == 0x0008 ) //down
             filesUpdate(cur_file_dir, cur_file_selected+fileCnt );
-        else if (key_value == 0x09) { 
+        else if (key_value == 0x000A && isLocalfile) { 
             if (getPrinter().getStatus().isPrintInProgress())
                 return;
             fileDelete();
         }
-        else if (key_value == 0x0A) { //閺傚洣娆㈤崚鐘绘珟
+        else if (key_value == 0x000A && !isLocalfile) { //copy
             if (getPrinter().getStatus().isPrintInProgress())
                 return;
             fileCopy();
         }
+
     }
 
     private void action_print_ctrl(byte[] payload)
     {
         if (payload.length < 9)
             return;
-        int key_value = payload[8];
+        char cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 3, 2));
+        int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
 
-        if (key_value == 0x01 && !getPrinter().getStatus().isPrintInProgress())
+        if (cmd == UartScreenVar.addr_btn_print_ctrl && key_value == 2 && !getPrinter().getStatus().isPrintInProgress())
             printJob();
-        else if (key_value == 0x02)
+        else if (cmd == UartScreenVar.addr_btn_mainUI && key_value == 18)
             pauseJob();
-        else if (key_value == 0x03 && getPrinter().getStatus().isPrintInProgress())
-        	writeKey((short)16,(short)16);
-        else if (key_value == 0x04)
+        else if (cmd == UartScreenVar.addr_btn_mainUI && key_value == 29 ) {
+        	if (getPrinter().getStatus().isPrintInProgress())
+        		goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.sureToStop));
+        }
+        	
+        else if (cmd == UartScreenVar.addr_btn_print_suretoStop && key_value == 2)
             stopJob();
     }
 
@@ -1082,30 +1223,37 @@ public class UartScreenControl
         if (payload.length < 9)
             return;
 
-        int key_value;
-        key_value = payload[8];
+        char cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 3, 2));
+        int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
+        else if(payload[2] == 0x01)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 14, 2));
+       
 
-        if (key_value >= 0x00 && key_value <= 0x04)
-            networkSelect(cur_network_page * 5 + key_value);
-        else if (key_value == 0x05)
+        if (key_value >= 17 && key_value <= 22)
+            networkSelect(cur_network_page * 5 + key_value - 17);
+        else if (key_value == 13)
             networkSelect(cur_network_selected - 5);
-        else if (key_value == 0x06)
+        else if (key_value == 14)
             networkSelect(cur_network_selected + 5);
-        else if (key_value == 0x07) {
+        else if (key_value == 11) {  //typein wifi password
             if (cur_network_selected >= 0) {
                 goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.NetworkEdit));
+                writeTextWith2Address(UartScreenVar.addr_txt_networkSsid, getNetworkSsid().getBytes());
             }
         }
-        else if (key_value == 0x08)
+        else if (key_value == 12 || key_value == 6)  //update wifi list id14
             networksUpdate();
-        else if (key_value == 0x09) {
-            String psk = getNetworkPsk();
-            System.out.println(psk);
-            if (psk.length() >= 8)
-                connectNetwork(getNetworkSsid(), getNetworkPsk());
-            else
-                writeKey((short)66,(short)16);
-        }
+//        else if (key_value == 0x09) {
+//            String psk = getNetworkPsk();
+//            System.out.println(psk);
+//            if (psk.length() >= 8)
+//                connectNetwork(getNetworkSsid(), getNetworkPsk());
+//            else
+//            	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.operation_fail));
+//        }
+        last_uiID = cmd;
     }
 
     private void action_set_network_psk(byte[] payload)
@@ -1114,9 +1262,19 @@ public class UartScreenControl
         //setNetworkPsk(psk.replaceAll("[^\\x20-\\x7E]", ""));
     	
     	//modified by derby 2021/3/8 for new dwin screen.
-        String psk = new String(BasicUtillities.subBytes(payload, 9, payload[8])); 
-        //System.out.println(psk);
-        setNetworkPsk(psk.replaceAll("[^\\x20-\\x7E]", ""));
+//        String psk = new String(BasicUtillities.subBytes(payload, 9, payload[8])); 
+        int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
+        else if(payload[2] == 0x01)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 14, 2));
+    	if (key_value == 7) {
+	        String psk = new String(BasicUtillities.subBytes(payload,8,payload.length-8-5)); 
+	        //System.out.println(psk);
+	        setNetworkPsk(psk.replaceAll("[^\\x20-\\x7E]", ""));
+	        if (psk.length() >= 8)
+	            connectNetwork(getNetworkSsid(), getNetworkPsk());
+    	}
     }
 
     private void action_parameters(byte[] payload)
@@ -1124,26 +1282,35 @@ public class UartScreenControl
         if (payload.length < 9)
             return;
 
-        int key_value;
-        key_value = payload[8];
+        int key_value = 0;
+        char cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 3, 2));
+        String strRecv;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
 
-        if (key_value == 0x00) { //鐠囪褰囬崣鍌涙殶
+        if (key_value == 0) { //鐠囪褰囬崣鍌涙殶
             readParameters();
         }
-        else if (key_value == 0x01) { //娣囨繂鐡ㄩ崣鍌涙殶
+        if (key_value == 16) { //save parameter
             if (getPrinter().getStatus().isPrintInProgress()) {
-                writeKey((short)66,(short)16);
+            	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.no_operation));
+            	try {
+					wait(500);
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+            	goPage(last_uiID);
                 return;
             }
             saveParameters();
-            writeKey((short)16,(short)16);
+            goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.operation_success));
         }
-        else if (key_value == 0x02) {
+        else if (key_value == 17) {
             parameterEnabled = !parameterEnabled;
             if (parameterEnabled)
-                writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 65});
+            	setBtnWith2Address(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x01});
             else
-                writeText(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00, 64});
+            	setBtnWith2Address(UartScreenVar.addr_icon_parameter_enabled, new byte[] {0x00});
         }
         else if (key_value == 0x03) {
             detectionEnabled = !detectionEnabled;
@@ -1152,6 +1319,10 @@ public class UartScreenControl
             else
                 writeText(UartScreenVar.addr_icon_detection_enabled, new byte[] {0x00, 66});
         }
+        else if (key_value >= 0x06 && key_value <=0x0f){
+        	action_parameters_set(payload);
+        }
+        last_uiID = cmd;
     }
 
     private void action_parameters_set(byte[] payload)
@@ -1162,32 +1333,35 @@ public class UartScreenControl
         if (getPrinter().getStatus().isPrintInProgress())
             return;
 
-        char cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 4, 2));
+        char cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
 
-        int value = ((payload[7] & 0xFF) << 8) + (payload[8] & 0xFF);
+//        int value = ((payload[7] & 0xFF) << 8) + (payload[8] & 0xFF);
+        String strValue = new String(BasicUtillities.subBytes(payload,8,payload.length-8-5)); 
+        int value = Integer.valueOf(strValue);
+        
 
-        if (cmd == UartScreenVar.addr_txt_parameters[0])
+        if (cmd == UartScreenVar.addr_txt_parameters[0][1])
             numberOfFirstLayers = value;
-        else if (cmd == UartScreenVar.addr_txt_parameters[1])
+        else if (cmd == UartScreenVar.addr_txt_parameters[1][1])
             firstLayerTime = value;
-        else if (cmd == UartScreenVar.addr_txt_parameters[2])
+        else if (cmd == UartScreenVar.addr_txt_parameters[2][1])
             layerTime = value;
-        else if (cmd == UartScreenVar.addr_txt_parameters[3])
+        else if (cmd == UartScreenVar.addr_txt_parameters[3][1])
             resumeLayerTime = value;
-        else if (cmd == UartScreenVar.addr_txt_parameters[4])
+        else if (cmd == UartScreenVar.addr_txt_parameters[4][1])
             liftDistance = value/10.0;
-        else if (cmd == UartScreenVar.addr_txt_parameters[5])
+        else if (cmd == UartScreenVar.addr_txt_parameters[5][1])
             liftFeedSpeed = value/10.0;
-        else if (cmd == UartScreenVar.addr_txt_parameters[6])
+        else if (cmd == UartScreenVar.addr_txt_parameters[6][1])
             liftRetractSpeed = value/10.0;
-        else if (cmd == UartScreenVar.addr_txt_parameters[7])
+        else if (cmd == UartScreenVar.addr_txt_parameters[7][1])
             delayTimeBeforeSolidify = value;
-        else if (cmd == UartScreenVar.addr_txt_parameters[8])
+        else if (cmd == UartScreenVar.addr_txt_parameters[8][1])
             delayTimeAfterSolidify = value;
-        else if (cmd == UartScreenVar.addr_txt_parameters[9])
+        else if (cmd == UartScreenVar.addr_txt_parameters[9][1])
             delayTimeAsLiftedTop = value;
-        else if (cmd == UartScreenVar.addr_txt_parameters[10])
-            delayTimeForAirPump = value;
+//        else if (cmd == UartScreenVar.addr_txt_parameters[10][1])
+//            delayTimeForAirPump = value;
     }
 
     private void action_language(byte[] payload)
@@ -1195,16 +1369,17 @@ public class UartScreenControl
         if (payload.length < 9)
             return;
 
-        int key_value;
-        key_value = payload[8];
+        int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
 
         ParameterRecord parameterRecord = HostProperties.Instance().getParameterRecord();
-        if (key_value == 0x01)	//set to CN
+        if (key_value == 6)	//set to CN
             parameterRecord.setLanguage(0);  
-        else if (key_value == 0x02) //set to EN
+        else if (key_value == 7) //set to EN
         	parameterRecord.setLanguage(1);
-        else if (key_value == 0x03)	//TBD
-            parameterRecord.setLanguage(3);
+//        else if (key_value == )	//TBD
+//            parameterRecord.setLanguage(3);
         else
         	return;
         HostProperties.Instance().saveParameterRecord(parameterRecord);
@@ -1220,33 +1395,35 @@ public class UartScreenControl
         if (getPrinter().getStatus().isPrintInProgress())
             return;
 
-        int key_value;
-        key_value = payload[8];
+        int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
+//        key_value = payload[8];
 
-        if (key_value == 0x01) {
+        if (key_value == 8) {
             //Z鏉炵繝绗傜粔锟�
             getPrinter().getGCodeControl().executeSetRelativePositioning();
             getPrinter().getGCodeControl().sendGcode("G1 Z1 F1000");
             getPrinter().getGCodeControl().executeSetAbsolutePositioning();
         }
-        else if (key_value == 0x02) {
+        else if (key_value == 10) {
             //Z鏉炵繝绗呯粔锟�
             getPrinter().getGCodeControl().executeSetRelativePositioning();
             getPrinter().getGCodeControl().sendGcode("G1 Z-1 F1000");
             getPrinter().getGCodeControl().executeSetAbsolutePositioning();
         }
-        else if (key_value == 0x03) {
+        else if (key_value == 9) {
             //Z鏉炴潙缍婇梿锟�
             getPrinter().getGCodeControl().executeZHome();
         }
-        else if (key_value == 0x04) {
+        else if (key_value == 6) {
             //Z鏉炵繝绗傜粔璇插煂妞ゅ爼鍎�
             getPrinter().getGCodeControl().executeSetAbsolutePositioning();
             int zTravel = getPrinter().getConfiguration().getSlicingProfile().getZTravel();
             String gCode = String.format("G1 Z%d F1000", zTravel);
             getPrinter().getGCodeControl().sendGcode(gCode);
         }
-        else if (key_value == 0x05) {
+        else if (key_value == 7) {
             //Z鏉炵繝绗呯粔璇插煂鎼存洟鍎�
             getPrinter().getGCodeControl().executeSetAbsolutePositioning();
             getPrinter().getGCodeControl().sendGcode("G1 Z0 F1000");
@@ -1262,11 +1439,13 @@ public class UartScreenControl
         if (getPrinter().getStatus().isPrintInProgress())
             return;
 
-        int key_value;
-        key_value = payload[8];
+        int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
+//        key_value = payload[8];
 
         if (key_value == 0x00) {
-            //鏉╂稑鍙嗛幒褍鍩楁い锟�
+            //initial screen
             double temperature = 0;
             String receive = getPrinter().getGCodeControl().executeQueryTemperature();
             Pattern GCODE_Temperature_PATTERN = Pattern.compile("\\s*T:\\s*(-?[\\d\\.]+).*B:(-?[\\d\\.]+).*");
@@ -1274,9 +1453,9 @@ public class UartScreenControl
             if (matcher.find()) {
                 temperature = Double.parseDouble(matcher.group(2));
             }
-            writeText(UartScreenVar.addr_txt_led_temperature, String.format("%-16s", String.format("%.1f", temperature)).getBytes());
-        } else if (key_value == 0x01) {
-            //閻忣垱婢樺锟介崗锟�
+            writeTextWith2Address(UartScreenVar.addr_txt_led_temperature, String.format("%-16s", String.format("%.1f", temperature)).getBytes());
+        } else if (key_value == 7) {
+            //led on/off
             if (!ledBoardEnabled) {
                 getPrinter().getGCodeControl().executeShutterOn();
                 ledBoardEnabled = true;
@@ -1296,7 +1475,7 @@ public class UartScreenControl
                         getPrinter().getGCodeControl().executeWaterPumpOff();
                         waterPumpEnabled = false;
                         ledBoardEnabled = false;
-                        writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, 72});
+                        setBtnWith2Address(UartScreenVar.addr_icon_led_board, new byte[]{0x00});
                     }
                 }, 40000);
             } else {
@@ -1307,7 +1486,7 @@ public class UartScreenControl
                 getPrinter().getGCodeControl().executeShutterOff();
                 ledBoardEnabled = false;
             }
-        } else if (key_value == 0x02) {
+        } else if (key_value == 8) {
             //濮樻潙鍠庡锟介崗锟�
             if (!waterPumpEnabled) {
                 getPrinter().getGCodeControl().executeWaterPumpOn();
@@ -1316,7 +1495,7 @@ public class UartScreenControl
                 getPrinter().getGCodeControl().executeWaterPumpOff();
                 waterPumpEnabled = false;
             }
-        } else if (key_value == 0x03) {
+        } else if (key_value == 9) {
             //妫板嫮鐤嗛崶鎯у剼
             if (!imageLogoEnabled) {
                 showImage("/opt/cwh/3DTALK.png");
@@ -1326,7 +1505,7 @@ public class UartScreenControl
                 showImage(null);
                 imageLogoEnabled = false;
             }
-        } else if (key_value == 0x04) {
+        } else if (key_value == 10) {
             //閸忋劌鐫嗛惂鍊熷
             if (!imageFullEnabled) {
                 showImage("/opt/cwh/WHITE.png");
@@ -1357,28 +1536,35 @@ public class UartScreenControl
         }
 
         if (ledBoardEnabled)
-            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.LightSwitch)});
+        	setBtnWith2Address(UartScreenVar.addr_icon_led_board, new byte[]{0x01});
         else
-            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
+        	setBtnWith2Address(UartScreenVar.addr_icon_led_board, new byte[]{0x00});
         if (waterPumpEnabled)
-            writeText(UartScreenVar.addr_icon_water_pump, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.WaterSwitch)});
+        	setBtnWith2Address(UartScreenVar.addr_icon_water_pump, new byte[]{0x01});
         else
-            writeText(UartScreenVar.addr_icon_water_pump, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
+        	setBtnWith2Address(UartScreenVar.addr_icon_water_pump, new byte[]{0x00});
         if (imageLogoEnabled)
-            writeText(UartScreenVar.addr_icon_image_logo, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.PresetImage)});
+        	setBtnWith2Address(UartScreenVar.addr_icon_image_logo, new byte[]{0x01});
         else
-            writeText(UartScreenVar.addr_icon_image_logo, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
+        	setBtnWith2Address(UartScreenVar.addr_icon_image_logo, new byte[]{0x00});
         if (imageFullEnabled)
-            writeText(UartScreenVar.addr_icon_image_full, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.FullScreenImage)});
+        	setBtnWith2Address(UartScreenVar.addr_icon_image_full, new byte[]{0x01});
         else
-            writeText(UartScreenVar.addr_icon_image_full, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
+        	setBtnWith2Address(UartScreenVar.addr_icon_image_full, new byte[]{0x00});
 
     }
 
     private void action_set_admin_password(byte[] payload)
     {
     	///modify by derby2021-1-4. 
-        String password = new String(BasicUtillities.subBytes(payload,7)); 
+    	int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
+        else if(payload[2] == 0x01)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 14, 2));
+    	if(key_value != 6)
+    		return;
+        String password = new String(BasicUtillities.subBytes(payload,8,payload.length-4)); 
         loadAdminAccount(password.replaceAll("[^\\x21-\\x7E]", ""));
     }
 
@@ -1386,32 +1572,47 @@ public class UartScreenControl
     {
         if (payload.length < 9)
             return;
+        
+        char cmd;
+        cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 3, 2));
 
-        int key_value;
-        key_value = payload[8];
+    	int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
 
-        if (key_value == 1) {
+        if (key_value == 10) {
             getPrinter().setLedUsedTime(0);
-            writeKey((short)16,(short)16);
         }
-        else if (key_value == 2) {
+        else if (key_value == 11) {
             getPrinter().setScreenUsedTime(0);
-            writeKey((short)16,(short)16);
         }
+        if (cmd == UartScreenVar.addr_btn_info_success && key_value == 2)
+        	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.replacement));
         setLiftTime();
+        last_uiID = cmd;
     }
 
     private void action_led_pwm_adjust(byte[] payload)
     {
-        int key_value;
-        key_value = payload[8];
+    	char cmd;
+        cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 3, 2));
+
+    	int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
 
         if (key_value == 0x00) {
-            //杩涘叆鐏澘鏍″噯
+            //initial screen
             ledPwmValue = new Integer(getPrinter().getGCodeControl().executeReadLedPwmValue());
-            writeText(UartScreenVar.addr_txt_led_pwm, new byte[]{(byte) ((ledPwmValue >> 8) & 0xFF), (byte) (ledPwmValue & 0xFF)});
-        } else if (key_value == 0x01) {
-            //鐏澘寮�鍏�
+            writeTextWith2Address(UartScreenVar.addr_txt_led_pwm, Integer.toString(ledPwmValue).getBytes());
+            writeTextWith2Address(UartScreenVar.addr_txt_pwm_slider, BasicUtillities.intToBytes(ledPwmValue));
+//            writeText(UartScreenVar.addr_txt_led_pwm, new byte[]{(byte) ((ledPwmValue >> 8) & 0xFF), (byte) (ledPwmValue & 0xFF)});
+        }
+        else if(key_value == 10) {
+        	ledPwmValue = payload[11];
+        }
+        else if (key_value == 6) {
+            //led on
             if (!ledBoardEnabled) {
                 getPrinter().getGCodeControl().executeShutterOn();
                 ledBoardEnabled = true;
@@ -1427,7 +1628,7 @@ public class UartScreenControl
                     {
                         getPrinter().getGCodeControl().executeShutterOff();
                         ledBoardEnabled = false;
-                        writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
+                        setBtnWith2Address(UartScreenVar.addr_icon_led_board, new byte[]{0x00});
                     }
                 }, 40000);
             } else {
@@ -1438,11 +1639,16 @@ public class UartScreenControl
                 getPrinter().getGCodeControl().executeShutterOff();
                 ledBoardEnabled = false;
             }
-        } else if (key_value == 0x02) //娣囨繂鐡ㄩ悘顖涙緲瀵搫瀹�
+        } else if (key_value == 7) //save pwm to control board
         {
             getPrinter().getGCodeControl().executeWriteLedPwmValue(ledPwmValue);
-            writeKey((short)16,(short)16);
-        } else //闁拷閸戣櫣鏅棃锟�
+            goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.operation_success));
+            
+        }
+//            else if (cmd == UartScreenVar.addr_btn_info_success && key_value == 2) {
+//        	goPage(last_uiID);
+//        }
+        else //other button
         {
             if (shutterTimer != null) {
                 shutterTimer.cancel();
@@ -1459,19 +1665,24 @@ public class UartScreenControl
         }
 
         if (ledBoardEnabled)
-            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.LightSwitch)});
+        	setBtnWith2Address(UartScreenVar.addr_icon_led_board, new byte[]{0x01});
         else
-            writeText(UartScreenVar.addr_icon_led_board, new byte[]{0x00, (byte) UartScreenVar.getIconPos(getLanguage(), getModelNumber(), UartScreenVar.IconPos.Empty1)});
+        	setBtnWith2Address(UartScreenVar.addr_icon_led_board, new byte[]{0x00});
+        last_uiID = cmd;
     }
 
     private void action_clear_trough(byte[] payload)
     {
         if (payload.length < 9 || getPrinter().isPrintInProgress())
             return;
-        int value = payload[8];
+        char cmd;
+        cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 3, 2));
+        int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
 
-        if (value == 1) {
-            writeKey((short)16,(short)16);
+        if (key_value == 2 && cmd == UartScreenVar.addr_btn_clear_trough) {
+        	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Resin_clean));
             getPrinter().getGCodeControl().executeShutterOn();
             showImage("/opt/cwh/WHITE.png");
             if (shutterTimer != null) {
@@ -1483,7 +1694,7 @@ public class UartScreenControl
                 @Override
                 public void run()
                 {
-                	writeKey((short)120,(short)120);
+                	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Settings));
                     getPrinter().getGCodeControl().executeShutterOff();
                     showImage(null);
                 }
@@ -1509,13 +1720,13 @@ public class UartScreenControl
         setVersion(getPrinter().getGCodeControl().getSerialNumber(), UartScreenVar.addr_txt_serialNumber);
         String ipAddress = getIpAddress();
         if (ipAddress != null) {
-            writeText(UartScreenVar.addr_txt_ipAddress, String.format("%-16s", ipAddress).getBytes());
+        	writeTextWith2Address(UartScreenVar.addr_txt_ipAddress, String.format("%-16s", ipAddress).getBytes());
         }
         else {
-            writeText(UartScreenVar.addr_txt_ipAddress, String.format("%-16s", "").getBytes());
+        	writeTextWith2Address(UartScreenVar.addr_txt_ipAddress, String.format("%-16s", "").getBytes());
         }
         //String modelNumber = HostProperties.Instance().getModelNumber();
-        writeText(UartScreenVar.addr_txt_modelNumber, String.format("%-16s", "DS280HD").getBytes());
+        writeTextWith2Address(UartScreenVar.addr_txt_modelNumber, String.format("%-16s", "DS280HD").getBytes());
     }
 
     private void action_update_software(byte[] payload)
@@ -1526,9 +1737,14 @@ public class UartScreenControl
         if (getPrinter().getStatus().isPrintInProgress())
             return;
 
-        int value = payload[8];
+//        int value = payload[8];
+        char cmd;
+        cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 3, 2));
+        int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
 
-        if (value == 1) {
+        if (key_value == 2 ) {
             Main.GLOBAL_EXECUTOR.submit(new Runnable() {
                 @Override
                 public void run()
@@ -1536,14 +1752,19 @@ public class UartScreenControl
                 	System.out.println("entering update softwware..");
                     if (check_updatable() && HostProperties.Instance().isEnableUpdate()) {
                         close();
+                        goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updating));
                         start_update();
+                        goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updated));
                     }
                     else {
-                        writeKey((short)66,(short)16);
+                    	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.update_software_failed));
                     }
                 }
             });
         }
+        if (key_value == 2 && cmd == UartScreenVar.addr_btn_update_software_failed)
+        	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Settings));
+        last_uiID = cmd;
     }
 
     private void action_update_firmware(byte[] payload)
@@ -1554,29 +1775,35 @@ public class UartScreenControl
         if (getPrinter().getStatus().isPrintInProgress())
             return;
 
-        int value = payload[8];
+        char cmd;
+        cmd = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 3, 2));
+        int key_value = 0;
+        if(payload[2] == 0x11)
+        	key_value = BasicUtillities.byteArrayToChar(BasicUtillities.subBytes(payload, 5, 2));
 
         try {
-            if (value == 1) {
+            if (key_value == 2) {
                 String filename = check_firmware_updatable();
                 if (filename == null) {
-                    writeKey((short)66,(short)16);
+                	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.update_software_failed));
                     return;
                 }
-                writeKey((short)116,(short)16);
+                goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updating));
                 ///////modified by derby 6-30 firmware update conflict with oqton collector service ,stop it temporary 
                 IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo service oqton.data.collector stop"}, null);
                 Thread.sleep(500);
                 FirmwareInstall firmwareInstall = new FirmwareInstall(getPrinter());
                 if (firmwareInstall.runInstall(filename)) {
-                    writeKey((short)120,(short)120);   //modified by derby for new dwin screen
-                    Thread.sleep(500);
-                    writeKey((short)16,(short)16);
+//                    writeKey((short)120,(short)120);   //modified by derby for new dwin screen
+//                    Thread.sleep(500);
+//                    writeKey((short)16,(short)16);
+                	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updated));
                 }
                 else {
-                    writeKey((short)16,(short)16);
-                    Thread.sleep(500);
-                    writeKey((short)66,(short)16);
+//                    writeKey((short)16,(short)16);
+//                    Thread.sleep(500);
+//                    writeKey((short)66,(short)16);
+                	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.update_firmware_failed));
                 }
                 IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo service oqton.data.collector start"}, null);
             }
@@ -1592,16 +1819,16 @@ public class UartScreenControl
     {
         try {
             System.out.println("update started");
-            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x07, (byte) 0x82, 0x00, (byte) 0x84, 0x5A, 0x01, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updating)});
+            getPrinter().getUartScreenSerialPort().write(new byte[]{ (byte)0xEE, (byte)0xB1,0x00,0x00, 0x22, (byte)0xFF, (byte)0xFC, (byte)0xFF, (byte)0xFF});
             Thread.sleep(100);
             update_dgus();
             update_filesystem();
-            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x07, (byte) 0x82, 0x00, (byte) 0x84, 0x5A, 0x01, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Updated)});
+            getPrinter().getUartScreenSerialPort().write(new byte[]{(byte)0xEE, (byte)0xB1,0x00,0x00, 0x1F, (byte)0xFF, (byte)0xFC, (byte)0xFF, (byte)0xFF});
             System.out.println("update completed");
             while (BasicUtillities.isExists(update_path)) {
                 Thread.sleep(1000);
             }
-            getPrinter().getUartScreenSerialPort().write(new byte[]{0x5A, (byte) 0xA5, 0x07, (byte) 0x82, 0x00, (byte) 0x84, 0x5A, 0x01, 0x00, (byte) UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Loading)});
+            getPrinter().getUartScreenSerialPort().write(new byte[]{(byte)0xEE, (byte)0xB1,0x00,0x00, 0x06, (byte)0xFF, (byte)0xFC, (byte)0xFF, (byte)0xFF});
             Thread.sleep(100);
             IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo /etc/init.d/cwhservice restart"}, null);
         }

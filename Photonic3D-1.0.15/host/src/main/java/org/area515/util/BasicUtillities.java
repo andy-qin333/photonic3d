@@ -60,6 +60,16 @@ public class BasicUtillities
         return bytes;
     }
     
+    public static byte[] intToBytes(int i)
+    {
+        byte[] bytes = new byte[4];
+        bytes[0] = (byte) ((i >> 24) & 0xFF);
+        bytes[1] = (byte) ((i >> 16) & 0xFF);
+        bytes[2] = (byte) ((i >> 8) & 0xFF);
+        bytes[3] = (byte) (i & 0xFF);
+        return bytes;
+    }
+    
     public static byte[] shortToBytes(short s){
     	return new byte[]{(byte)((s & 0xFF00)>>8),(byte)(s & 0x00FF)};
     }
