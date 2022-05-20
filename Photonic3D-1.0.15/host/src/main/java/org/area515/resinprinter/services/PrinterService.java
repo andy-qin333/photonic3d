@@ -915,9 +915,10 @@ public class PrinterService {
 			return new MachineResponse("startPrinter", false, "Printer:" + printerName + " must be calibrated before it's first use.");
 		}
 
-		IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset s off"}, null);
-		IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset -dpms"}, null);
-		IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset s noblank"}, null);
+		/////2022-5-20 by derby 暂时取消，将初始化放在开始打印时，全屏显示进行屏幕刷新。改善长时间打印分层的现象。
+//		IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset s off"}, null);
+//		IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset -dpms"}, null);
+//		IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset s noblank"}, null);
 
 		// Create job
 		File selectedFile = new File(HostProperties.Instance().getUploadDir(), printableName); //should already be done by marshalling: java.net.URLDecoder.decode(name, "UTF-8"));//name);
