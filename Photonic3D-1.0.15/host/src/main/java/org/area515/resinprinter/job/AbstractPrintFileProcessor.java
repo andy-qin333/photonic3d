@@ -44,6 +44,8 @@ import org.area515.resinprinter.server.Main;
 import org.area515.resinprinter.services.CustomizerService;
 import org.area515.resinprinter.services.PrinterService;
 import org.area515.resinprinter.slice.StlError;
+import org.area515.util.BasicUtillities;
+import org.area515.util.IOUtilities;
 import org.area515.util.Log4jTimer;
 import org.area515.util.TemplateEngine;
 
@@ -924,6 +926,26 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 
 		//Blank the screen
 		aid.printer.showBlankImage();
+		
+		if(aid.printJob.getCurrentSlice() > 0 && aid.printJob.getCurrentSlice()%100 == 0)
+		{
+			 try {
+		            
+
+		                IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset s off"}, null);
+		                IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset -dpms"}, null);
+		                IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset s noblank"}, null);
+
+		                File imageFile = new File("/opt/cwh/WHITE.png");
+		                BufferedImage image = ImageIO.read(imageFile);
+		                aid.printer.showImage(image);
+		            
+		        }
+		        
+		        catch (IOException e) {
+		            System.out.print(e.toString());
+		        }
+		}
 
 		// FIXME: 2017/9/15 zyd add for set delay time -s
 		if (aid.slicingProfile.getDelayTimeAfterSolidify() > 0)
