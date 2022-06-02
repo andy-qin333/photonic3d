@@ -53,6 +53,7 @@ import com.google.gson.JsonObject;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import org.area515.util.IOUtilities;
 
 public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProcessor<G,E>{
 	private static final Logger logger = LogManager.getLogger();
@@ -924,6 +925,26 @@ public abstract class AbstractPrintFileProcessor<G,E> implements PrintFileProces
 
 		//Blank the screen
 		aid.printer.showBlankImage();
+		
+		if(aid.printJob.getCurrentSlice() > 0 && aid.printJob.getCurrentSlice()%100 == 0)
+		{
+			 try {
+		            
+
+		                IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset s off"}, null);
+		                IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset -dpms"}, null);
+		                IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset s noblank"}, null);
+
+		                File imageFile = new File("/opt/cwh/WHITE.png");
+		                BufferedImage image = ImageIO.read(imageFile);
+		                aid.printer.showImage(image);
+		            
+		        }
+		        
+		        catch (IOException e) {
+		            System.out.print(e.toString());
+		        }
+		}
 
 		// FIXME: 2017/9/15 zyd add for set delay time -s
 		if (aid.slicingProfile.getDelayTimeAfterSolidify() > 0)
