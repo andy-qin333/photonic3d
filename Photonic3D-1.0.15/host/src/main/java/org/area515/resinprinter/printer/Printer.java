@@ -388,6 +388,8 @@ public class Printer {
 		parameterRecord = HostProperties.Instance().getParameterRecord();
 		parameterRecord.setLedUsedTime(parameterRecord.getLedUsedTime() + exposuredTime);
 		parameterRecord.setScreenUsedTime(parameterRecord.getScreenUsedTime() + exposuredTime);
+		parameterRecord.setlayersCountClear(parameterRecord.getlayersCountClear()+1);
+		parameterRecord.setlayersReplaceFilm(parameterRecord.getlayersReplaceFilm()+1);
 		HostProperties.Instance().saveParameterRecord(parameterRecord);
 	}
 
@@ -437,7 +439,7 @@ public class Printer {
 		return parameterRecord.getSumOfMaterial();
 
 	}
-
+	// FIXME: 2019-11-11 derby add for sum of material
 	public void setSumOfMaterial(double volume)
 	{
 		ParameterRecord parameterRecord;
@@ -457,7 +459,49 @@ public class Printer {
 	{
 		this.volume = volume;
 	}
-	// FIXME: 2019-11-11 derby add for sum of material
+	
+	public int getCntLayersClearResin()
+	{
+		return HostProperties.Instance().getParameterRecord().getlayersCountClear();
+	}
+	
+	public void setCntLayersClearResin(int cnt)
+	{
+		ParameterRecord parameterRecord;
+		parameterRecord = HostProperties.Instance().getParameterRecord();
+
+		parameterRecord.setlayersCountClear(cnt);
+		HostProperties.Instance().saveParameterRecord(parameterRecord);
+	}
+	
+	public int getCntLayersReplacefilm()
+	{
+		return HostProperties.Instance().getParameterRecord().getlayersReplaceFilm();
+	}
+	
+	public void setCntLayersReplacefilm(int cnt)
+	{
+		ParameterRecord parameterRecord;
+		parameterRecord = HostProperties.Instance().getParameterRecord();
+
+		parameterRecord.setlayersReplaceFilm(cnt);
+		HostProperties.Instance().saveParameterRecord(parameterRecord);
+	}
+	
+	public int getCntReplaceFilm()
+	{
+		return HostProperties.Instance().getParameterRecord().getCntReplaceFilm();
+	}
+	
+	public void setCntReplaceFilm(int cnt)
+	{
+		ParameterRecord parameterRecord;
+		parameterRecord = HostProperties.Instance().getParameterRecord();
+
+		parameterRecord.setCntReplaceFilm(cnt);
+		HostProperties.Instance().saveParameterRecord(parameterRecord);
+	}
+
 
 	public String toString() {
 		return getName() + "(printerFirmwareSerialPort:" + printerFirmwareSerialPort + ", projectorSerialPort:" + projectorSerialPort + " Display:" + displayDeviceID + ")";

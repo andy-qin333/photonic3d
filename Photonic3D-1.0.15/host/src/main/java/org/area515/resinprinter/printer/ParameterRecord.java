@@ -24,7 +24,18 @@ public class ParameterRecord
     @XmlElement(name="sumOfMaterial")
     private double sumOfMaterial = 0;
     //2019-11-11 derby add for sum of resine
-
+    @XmlElement(name="layersCountClear")
+    private int layersCountClear = 0;
+  
+    //2022/6/9 derby add for replace film
+    @XmlElement(name="layersCountReplaceFilm")
+    private int layersCountReplaceFilm = 0;
+  
+    // 2022/6/9 derby add for summary of replace film
+    @XmlElement(name="cntReplaceFilm")
+    private int cntReplaceFilm = 0;
+ 
+    
     @XmlTransient
     public long getLedUsedTime()
     {
@@ -65,4 +76,34 @@ public class ParameterRecord
         this.sumOfMaterial = sumOfMaterial;
     }
     //2019-11-11 derby add for sum of resine
+    @XmlTransient
+    public int getlayersCountClear()
+    {
+        return layersCountClear;
+    }
+    public void setlayersCountClear(int  cnt)
+    {
+        this.layersCountClear = cnt;
+    }
+    //2019-11-11 derby add for clear action
+    @XmlTransient
+    public int getlayersReplaceFilm()
+    {
+        return layersCountReplaceFilm;
+    }
+    public void setlayersReplaceFilm(int  cnt)
+    {
+        this.layersCountReplaceFilm = cnt;
+    }
+    //2019-11-11 derby add for replace film
+    @XmlTransient
+    public int getCntReplaceFilm()
+    {
+        return cntReplaceFilm;
+    }
+    public void setCntReplaceFilm(int  cnt)
+    {
+        this.cntReplaceFilm = cnt;
+    }
+    //2019-11-11 derby add for summary of replace film
 }

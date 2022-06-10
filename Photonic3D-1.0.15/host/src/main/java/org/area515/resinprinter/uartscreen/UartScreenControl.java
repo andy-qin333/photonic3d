@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.4.45";  //derby on 2019-11-19
+    private String version = "0.4.47";  //derby on 2019-11-19
 
     //private int Page
     private Thread readThread;
@@ -800,16 +800,26 @@ public class UartScreenControl
     private void setLiftTime()
     {
         String string;
+        int iconNum;
 
         long ledUsedTime = getPrinter().getLedUsedTime();
         string = String.format("%.1f/%d", ledUsedTime/(60*60*1000.0), 5000);
+        iconNum = (int)(102 - ledUsedTime / (60*60*1000.0*1000));
         writeText(UartScreenVar.addr_txt_lifetime_led, String.format("%-10s", string).getBytes());
-        writeText(UartScreenVar.addr_icon_lifetime_led, new byte[] {0x00, (byte)(102 - ledUsedTime / (60*60*1000.0*1000))}); //add by derby 2020/1/14 led_life icon
+        writeText(UartScreenVar.addr_icon_lifetime_led, new byte[] {0x00, (byte)(iconNum < 97?97:iconNum)}); //add by derby 2020/1/14 led_life icon
 
         long screenUsedTime = getPrinter().getScreenUsedTime();
         string = String.format("%.1f/%d", screenUsedTime/(60*60*1000.0), 1000);
+        iconNum = (int)(102 - screenUsedTime / (60*60*1000.0*200));
         writeText(UartScreenVar.addr_txt_lifetime_screen, String.format("%-10s", string).getBytes());
-        writeText(UartScreenVar.addr_icon_lifetime_screen, new byte[] {0x00, (byte)(102 - screenUsedTime / (60*60*1000.0*200))}); //add by derby 2020/1/14 screen_life icon
+        writeText(UartScreenVar.addr_icon_lifetime_screen, new byte[] {0x00, (byte)(iconNum < 97?97:iconNum)}); //add by derby 2020/1/14 screen_life icon
+        
+        int filmUsedTime = getPrinter().getCntLayersReplacefilm();
+        string = String.format("%d/%d", filmUsedTime, HostProperties.Instance().getLayersReplaceFilm());
+        iconNum = (int)(102 - filmUsedTime*5 / HostProperties.Instance().getLayersReplaceFilm());
+        writeText(UartScreenVar.addr_txt_lifetime_film, String.format("%-10s", string).getBytes());
+        writeText(UartScreenVar.addr_icon_lifetime_film, new byte[] {0x00, (byte)(iconNum < 97?97:iconNum)}); //add by derby 2020/1/14 led_life icon
+
     }
 
     private void loadAdminAccount(String password)
@@ -1049,8 +1059,28 @@ public class UartScreenControl
             return;
         int key_value = payload[8];
 
-        if (key_value == 0x01 && !getPrinter().getStatus().isPrintInProgress())
-            printJob();
+        if (key_value == 0x01 && !getPrinter().getStatus().isPrintInProgress()) {
+        	goPage(UartScreenVar.getPagePos(getLanguage(), getModelNumber(), UartScreenVar.PagePos.Main));
+        	try {
+        		Thread.sleep(500);
+        	}
+        	catch (InterruptedException e) {
+                System.out.println(e.toString());
+        	}
+        	
+        	if(getPrinter().getCntLayersClearResin() > HostProperties.Instance().getLayersClearResin()) {
+        		writeKey((byte)0xF3);   //提示更换离型膜
+        		return;
+        	}
+        	if(getPrinter().getCntLayersReplacefilm() > HostProperties.Instance().getLayersReplaceFilm()) {
+        		writeKey((byte)0xF2);   //提示清理料槽对话框
+        		return;
+        	}
+        		
+        	printJob();
+        	
+        }
+            
         else if (key_value == 0x02)
             pauseJob();
         else if (key_value == 0x03 && getPrinter().getStatus().isPrintInProgress())
@@ -1377,6 +1407,12 @@ public class UartScreenControl
             getPrinter().setScreenUsedTime(0);
             writeKey((byte)0xF1);
         }
+        else if (key_value == 3) {
+            getPrinter().setCntLayersReplacefilm(0);
+            writeKey((byte)0xF1);
+            getPrinter().setCntLayersReplacefilm(0);
+            getPrinter().setCntReplaceFilm(getPrinter().getCntReplaceFilm()+1);   //记录更换离型膜次数
+        }
         setLiftTime();
     }
 
@@ -1467,6 +1503,7 @@ public class UartScreenControl
                     showImage(null);
                 }
             }, 10000);
+            getPrinter().setCntLayersClearResin(0);
         }
     }
 

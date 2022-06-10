@@ -35,6 +35,7 @@ public class UartScreenVar
     static final char addr_icon_printProgress_ex = 0x0142; //add by derby 2021/2/26 for ds300 uartscreen
     static final char addr_icon_lifetime_led = 0x0140; //add by derby 2020/1/14
     static final char addr_icon_lifetime_screen = 0x0141; //add by derby 2020/1/14
+    static final char addr_icon_lifetime_film = 0x0150; // add by derby 2022/6/10
     //add by derby 2020/2/18 {hour_H，hour_L,min_H,min_L,sec_H,sec_L}
     static final char[] addr_icon_printTime = {0x0144, 0x0145, 0x0146, 0x0147, 0x0148, 0x0149};
     
@@ -58,6 +59,7 @@ public class UartScreenVar
     static final char[] addr_txt_parameters = {0x1700, 0x1710, 0x1720, 0x1730, 0x1740, 0x1750, 0x1760, 0x1770, 0x1780, 0x1790, 0x17A0};
     static final char addr_txt_lifetime_led = 0x1800;
     static final char addr_txt_lifetime_screen = 0x1810;
+    static final char addr_txt_lifetime_film = 0x1820;
     static final char addr_txt_led_pwm = 0x1900;
 
     static final char[] desc_txt_fileList = {0x4003, 0x4023, 0x4043, 0x4063, 0x4083};
