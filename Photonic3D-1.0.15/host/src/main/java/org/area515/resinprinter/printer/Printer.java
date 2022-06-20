@@ -390,6 +390,7 @@ public class Printer {
 		parameterRecord.setScreenUsedTime(parameterRecord.getScreenUsedTime() + exposuredTime);
 		parameterRecord.setlayersCountClear(parameterRecord.getlayersCountClear()+1);
 		parameterRecord.setlayersReplaceFilm(parameterRecord.getlayersReplaceFilm()+1);
+		parameterRecord.setSysRunningHours(parameterRecord.getSysRunningHours()+1);
 		HostProperties.Instance().saveParameterRecord(parameterRecord);
 	}
 
@@ -499,6 +500,20 @@ public class Printer {
 		parameterRecord = HostProperties.Instance().getParameterRecord();
 
 		parameterRecord.setCntReplaceFilm(cnt);
+		HostProperties.Instance().saveParameterRecord(parameterRecord);
+	}
+	
+	public double getSysRunningHours()
+	{
+		return HostProperties.Instance().getParameterRecord().getSysRunningHours();
+	}
+	
+	public void setSysRunningHours(Double cnt)
+	{
+		ParameterRecord parameterRecord;
+		parameterRecord = HostProperties.Instance().getParameterRecord();
+
+		parameterRecord.setSysRunningHours(cnt);
 		HostProperties.Instance().saveParameterRecord(parameterRecord);
 	}
 

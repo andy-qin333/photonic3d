@@ -1,5 +1,7 @@
 package org.area515.resinprinter.printer;
 
+import java.util.function.DoubleToLongFunction;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -34,6 +36,9 @@ public class ParameterRecord
     // 2022/6/9 derby add for summary of replace film
     @XmlElement(name="cntReplaceFilm")
     private int cntReplaceFilm = 0;
+    
+    @XmlElement(name="sysRunningHours")
+    private double sysRunningHours = 0;
  
     
     @XmlTransient
@@ -106,4 +111,13 @@ public class ParameterRecord
         this.cntReplaceFilm = cnt;
     }
     //2019-11-11 derby add for summary of replace film
+    @XmlTransient
+    public double getSysRunningHours()
+    {
+        return sysRunningHours;
+    }
+    public void setSysRunningHours(Double  cnt)
+    {
+        this.sysRunningHours = cnt;
+    }
 }
