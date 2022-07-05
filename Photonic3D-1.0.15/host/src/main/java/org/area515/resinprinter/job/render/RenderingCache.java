@@ -2,6 +2,7 @@ package org.area515.resinprinter.job.render;
 
 import java.awt.image.BufferedImage;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.logging.log4j.LogManager;
@@ -13,7 +14,8 @@ import com.google.common.cache.LoadingCache;
 
 public class RenderingCache {
 	private static final Logger logger = LogManager.getLogger();
-	private LoadingCache<Object, RenderedData> imageSync = CacheBuilder.newBuilder().softValues().build(
+	/////modify by derby. 2022/4/9
+	private LoadingCache<Object, RenderedData> imageSync = CacheBuilder.newBuilder().maximumSize(2).expireAfterAccess(5, TimeUnit.MINUTES).softValues().build(
 			new CacheLoader<Object, RenderedData>() {
 				@Override
 				public RenderedData load(Object key) throws Exception {
