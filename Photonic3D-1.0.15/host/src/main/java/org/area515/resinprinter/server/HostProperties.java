@@ -104,6 +104,8 @@ public class HostProperties {
 	// FIXME: 2017/9/6 zyd add for enable system update -e
 	// FIXME: 2018/6/27 zyd add for get model number -s
 	private String modelNumber;
+	private int cntLayersClearResin;
+	private int cntLayersReplaceFilm;
 	// FIXME: 2018/6/27 zyd add for get model number -e
 	// FIXME: 2018/9/3 zyd add for GraphicsMagick -s
 	private boolean useGraphicsMagick;
@@ -325,6 +327,10 @@ public class HostProperties {
 		// FIXME: 2018/9/3 zyd add for GraphicsMagick -s
 		useGraphicsMagick = new Boolean(configurationProperties.getProperty("useGraphicsMagick", "false"));
 		// FIXME: 2018/9/3 zyd add for GraphicsMagick -e
+		// 2022/6/9 derby add for replace film
+		cntLayersClearResin = new Integer(configurationProperties.getProperty("cntLayersClearResin", "5000"));
+		cntLayersReplaceFilm = new Integer(configurationProperties.getProperty("cntLayersReplaceFilm", "30000"));
+		
 		externallyAccessableName = configurationProperties.getProperty("externallyAccessableName");
 		sslKeypairPassword = configurationProperties.getProperty("keypairPassword");
 		sslKeystorePassword = configurationProperties.getProperty("keystorePassword");
@@ -610,6 +616,12 @@ public class HostProperties {
 		return useGraphicsMagick;
 	}
 	// FIXME: 2018/9/3 zyd add for GraphicsMagick -e
+	public int getLayersClearResin() {
+		return cntLayersClearResin;
+	}
+	public int getLayersReplaceFilm() {
+		return cntLayersReplaceFilm;
+	}
 
 	public String getForwardHeader() {
 		return forwardHeader;
