@@ -524,7 +524,7 @@ public class UartScreenControl
     {
         Printer printer = getPrinter();
         if (printer.isStarted() && !printer.isPrintInProgress()) {
-            PrinterService.INSTANCE.print(fileName, printer.getName());
+            PrinterService.INSTANCE.print(fileName, printer.getName(),"local");
         }
     }
 

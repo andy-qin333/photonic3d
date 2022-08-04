@@ -157,8 +157,8 @@ public class PrintableService {
             @ApiResponse(code = 200, message = SwaggerMetadata.SUCCESS),
             @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
 	@POST
-	@Path("/print/{filename}")
-	public PrintJob print(@PathParam("filename")String fileName) {
+	@Path("/print/{dirType}/{filename}")
+	public PrintJob print(@PathParam("dirType")String dirType,@PathParam("filename")String fileName) {
 		boolean atLeastOnePrinterStarted = false;
 		List<Printer> printers = PrinterService.INSTANCE.getPrinters();
 		for (Printer printer : printers) {
@@ -167,7 +167,7 @@ public class PrintableService {
 			}
 			if (printer.isStarted() && !printer.isPrintInProgress()) {
 				MachineResponse response;
-				response = PrinterService.INSTANCE.print(fileName, printer.getName());	
+				response = PrinterService.INSTANCE.print(fileName, printer.getName(),dirType);	
 
 				if (response.getResponse()) {
 					return PrintJobService.INSTANCE.getById(response.getMessage());
@@ -276,9 +276,11 @@ public class PrintableService {
             @ApiResponse(code = 200, message = SwaggerMetadata.SUCCESS),
             @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
 	@GET
-	@Path("list")
-	public List<Printable> getPrintables() {
+	@Path("list/{dirtype}")
+	public List<Printable> getPrintables(@PathParam("dirtype")String dirType) {
     	File dir = HostProperties.Instance().getUploadDir();
+    	if( dirType.equals("udisk") )
+    		dir = HostProperties.Instance().getUdiskDir();
 		File[] acceptedFiles = dir.listFiles();
 		ArrayList<Printable> printables = new ArrayList<Printable>();
 		for(File file : acceptedFiles) {

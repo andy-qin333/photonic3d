@@ -884,8 +884,8 @@ public class PrinterService {
 	@GET
 	@Path("startJob/{fileName}/{printername}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public MachineResponse print(@PathParam("fileName") String fileName, @PathParam("printername") String printername) {
-    	return startPrintJob(printername, fileName, null);
+	public MachineResponse print(@PathParam("fileName") String fileName, @PathParam("printername") String printername,String dirType) {
+    	return startPrintJob(printername, fileName, null,dirType);
     }
     
     @ApiOperation(value="Attempt to start a print by specifying the name of the Customizer. ")
@@ -900,10 +900,10 @@ public class PrinterService {
     	if (customizer == null) {
     		return new MachineResponse("startJob", false, "Customizer:" + customizerName + " not found");
     	}
-    	return startPrintJob(customizer.getPrinterName(), customizer.getPrintableName() + "." + customizer.getPrintableExtension(), customizer);
+    	return startPrintJob(customizer.getPrinterName(), customizer.getPrintableName() + "." + customizer.getPrintableExtension(), customizer,"local");
 	}
 
-    public MachineResponse startPrintJob(String printerName, String printableName, Customizer customizer) {
+    public MachineResponse startPrintJob(String printerName, String printableName, Customizer customizer,String dirType) {
 		Printer printer = PrinterManager.Instance().getPrinter(printerName);
 		if (printer == null) {
 			return new MachineResponse("start", false, "Printer not started:" + printerName);
@@ -919,9 +919,10 @@ public class PrinterService {
 		IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset -dpms"}, null);
 		IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset s noblank"}, null);
 
-		// Create job
+		// Create job 
 		File selectedFile = new File(HostProperties.Instance().getUploadDir(), printableName); //should already be done by marshalling: java.net.URLDecoder.decode(name, "UTF-8"));//name);
-		
+		if( dirType.equals("udisk") )
+			selectedFile = new File(HostProperties.Instance().getUdiskDir(), printableName); //should already be done by marshalling: java.net.URLDecoder.decode(name, "UTF-8"));//name);
 		// Delete and Create handled in jobManager
 		PrintJob printJob = null;
 		try {
