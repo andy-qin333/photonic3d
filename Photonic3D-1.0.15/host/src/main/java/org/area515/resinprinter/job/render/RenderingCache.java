@@ -15,7 +15,7 @@ import com.google.common.cache.LoadingCache;
 public class RenderingCache {
 	private static final Logger logger = LogManager.getLogger();
 	/////modify by derby. 2022/4/9
-	private LoadingCache<Object, RenderedData> imageSync = CacheBuilder.newBuilder().maximumSize(2).expireAfterAccess(5, TimeUnit.MINUTES).softValues().build(
+	private LoadingCache<Object, RenderedData> imageSync = CacheBuilder.newBuilder().maximumSize(100).expireAfterAccess(5, TimeUnit.MINUTES).softValues().build(
 			new CacheLoader<Object, RenderedData>() {
 				@Override
 				public RenderedData load(Object key) throws Exception {
