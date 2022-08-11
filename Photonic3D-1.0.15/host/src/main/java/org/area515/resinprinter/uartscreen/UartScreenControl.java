@@ -38,7 +38,7 @@ import org.area515.util.IOUtilities;
 
 public class UartScreenControl
 {
-    private String version = "0.5.11";  //derby on 2020-10-14 for ds300
+    private String version = "0.5.12";  //derby on 2020-10-14 for ds300
 
     //private int Page
     private Thread readThread;
@@ -1053,6 +1053,13 @@ public class UartScreenControl
         int key_value = payload[8];
 
         if (key_value == 0x01 && !getPrinter().getStatus().isPrintInProgress()) {
+        	goPage(UartScreenVar.getPagePos(getLanguage(), UartScreenVar.PagePos.Main));
+        	try {
+        		Thread.sleep(500);
+        	}
+        	catch (InterruptedException e) {
+                System.out.println(e.toString());
+        	}
         	
         	if(getPrinter().getCntLayersClearResin() > HostProperties.Instance().getLayersClearResin()) {
         		writeKey((byte)0xF3);   //提示更换离型膜
