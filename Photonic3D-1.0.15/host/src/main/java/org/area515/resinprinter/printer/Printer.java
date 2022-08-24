@@ -2,10 +2,16 @@ package org.area515.resinprinter.printer;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
 import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +25,10 @@ import org.area515.resinprinter.projector.ProjectorModel;
 import org.area515.resinprinter.serial.SerialCommunicationsPort;
 import org.area515.resinprinter.server.HostProperties;
 import org.area515.resinprinter.uartscreen.UartScreenControl;
+import org.area515.resinprinter.uartscreen.UartScreenNet;
+import org.area515.resinprinter.uartscreen.UartScreenVar;
+import org.area515.util.BasicUtillities;
+import org.area515.util.IOUtilities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -72,6 +82,15 @@ public class Printer {
 		Finished  ///derby add for synchronized the UVLed time  2019/11/13
 	}
 	
+	private Timer shutterTimer;
+	
+    private boolean ledBoardEnabled = false;
+    private boolean waterPumpEnabled = false;
+    private boolean imageLogoEnabled = false;
+    private boolean imageFullEnabled = false;
+    
+    private UartScreenNet uartScreenNet;
+    
 	//For jaxb/json
 	@SuppressWarnings("unused")
 	private Printer() {}
@@ -94,6 +113,8 @@ public class Printer {
 		// FIXME: 2017/9/1 zyd add for uartscreen -s
 		this.uartScreenControl = new UartScreenControl(this);
 		// FIXME: 2017/9/1 zyd add for uartscreen -e
+		
+		this.uartScreenNet = new UartScreenNet(this);
 	}
 	
 	@JsonIgnore
@@ -372,6 +393,10 @@ public class Printer {
 	public UartScreenControl getUartScreenControl() {
 		return uartScreenControl;
 	}
+	@JsonIgnore
+	public UartScreenNet getUartScreenNet() {
+		return uartScreenNet;
+	}
 	// FIXME: 2017/9/1 zyd add for uartscreen -e
 
 	// FIXME: 2017/10/11 zyd add for record parameter -s
@@ -572,4 +597,32 @@ public class Printer {
 			return false;
 		return true;
 	}
+	
+
+    @SuppressWarnings("null")
+	public void showImage(String filePath)
+    {
+        try {
+            if ( (filePath != null && !filePath.isEmpty() ) && BasicUtillities.isExists(filePath)) {
+                if (getConfiguration().getSlicingProfile().getDetectionLiquidLevelEnabled()) {
+                    if (getGCodeControl().executeDetectLiquidLevel().equals("H"))
+                        return;
+                }
+
+                IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset s off"}, null);
+                IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset -dpms"}, null);
+                IOUtilities.executeNativeCommand(new String[]{"/bin/sh", "-c", "sudo xset s noblank"}, null);
+
+                File imageFile = new File(filePath);
+                BufferedImage image = ImageIO.read(imageFile);
+                showImage(image);
+            }
+            else {
+                showBlankImage();
+            }
+        }
+        catch (IOException e) {
+            System.out.print(e.toString());
+        }
+    }
 }

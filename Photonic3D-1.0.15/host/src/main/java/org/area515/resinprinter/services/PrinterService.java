@@ -1154,4 +1154,146 @@ public class PrinterService {
 		}
 	}
 	// FIXME: 2017/9/28 zyd add for gcode log -e
+	
+	
+
+    @ApiOperation(value="clear trough")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("clearTrough/{printername}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse clearTrough(@PathParam("printername") String printerName) throws InappropriateDeviceException {
+		Printer printer = getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("clearTrough", false, "Printer not started:" + printerName);
+		}
+		printer.getUartScreenNet().action_clear_trough(1);
+		return new MachineResponse("clearTrough", true, "ok");
+		
+	}
+    
+    @ApiOperation(value="optical Control")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("opticalControl/{printername}/{control}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse opticalControl(@PathParam("printername") String printerName,@PathParam("control") String value) throws InappropriateDeviceException {
+		Printer printer = getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("opticalControl", false, "Printer not started:" + printerName);
+		}
+		printer.getUartScreenNet().action_optical_control(value);
+		return new MachineResponse("opticalControl", true, "ok");
+		
+	}
+    
+    @ApiOperation(value="preset image")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("presetimage/{printername}/{imagePath}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse presetImage(@PathParam("printername") String printerName,@PathParam("imagePath") String imagePath) throws InappropriateDeviceException {
+		Printer printer = getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("presetimage", false, "Printer not started:" + printerName);
+		}
+		printer.getUartScreenNet().action_preset_image(imagePath);
+		return new MachineResponse("presetimage", true, "ok");
+		
+	}
+    
+    
+    @ApiOperation(value="update firmware")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("updateFirmware/{printername}/{value}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse updateFirmware(@PathParam("printername") String printerName,@PathParam("value") String value) throws InappropriateDeviceException {
+		Printer printer = getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("updatefirmware", false, "Printer not started:" + printerName);
+		}
+		boolean ok = printer.getUartScreenNet().action_update_firmware(Integer.parseInt(value));
+		return new MachineResponse("updatefirmware", ok?true:false, ok?"ok":"fail");
+		
+	}
+
+    
+    
+    @ApiOperation(value="led pwm adjust")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("ledPwmAdjust/{printername}/{value}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse ledPwmAdjust(@PathParam("printername") String printerName,@PathParam("value") String value) throws InappropriateDeviceException {
+		Printer printer = getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("ledpwmadjust", false, "Printer not started:" + printerName);
+		}
+		String ret = printer.getUartScreenNet().action_led_pwm_adjust(Integer.parseInt(value));
+		return new MachineResponse("ledpwmadjust", true, ret);
+		
+	}
+    
+    @ApiOperation(value="set led pwm")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("setLedPwm/{printername}/{value}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse setLedPwm(@PathParam("printername") String printerName,@PathParam("value") String value) throws InappropriateDeviceException {
+		Printer printer = getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("setledpwm", false, "Printer not started:" + printerName);
+		}
+		printer.getUartScreenNet().action_set_led_pwm(Integer.parseInt(value));
+		return new MachineResponse("setledpwm", true, "ok");
+		
+	}
+    
+    @ApiOperation(value="replace part")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("replacePart/{printername}/{value}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse replacePart(@PathParam("printername") String printerName,@PathParam("value") String value) throws InappropriateDeviceException {
+		Printer printer = getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("replacepart", false, "Printer not started:" + printerName);
+		}
+		printer.getUartScreenNet().action_replace_part(Integer.parseInt(value));
+		return new MachineResponse("replacepart", true, "ok");
+		
+	}    
+    
+    @ApiOperation(value="lift time")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("getLiftTime/{printername}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse getLiftTime(@PathParam("printername") String printerName) throws InappropriateDeviceException {
+		Printer printer = getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("getLiftTime", false, "Printer not started:" + printerName);
+		}
+		String json = printer.getUartScreenNet().action_get_lift_time();
+		return new MachineResponse("getLiftTime", true, json);
+		
+	}  
 }
+

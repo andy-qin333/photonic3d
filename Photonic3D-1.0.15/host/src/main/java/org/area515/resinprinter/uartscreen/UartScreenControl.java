@@ -1181,7 +1181,7 @@ public class UartScreenControl
         else if (cmd == UartScreenVar.addr_txt_parameters[10])
             delayTimeForAirPump = value;
     }
-
+    
     private void action_language(byte[] payload)
     {
         if (payload.length < 9)
