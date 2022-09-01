@@ -1295,5 +1295,40 @@ public class PrinterService {
 		return new MachineResponse("getLiftTime", true, json);
 		
 	}  
+    
+
+    @ApiOperation(value="save parameters")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("saveParameters/{printername}/{json}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse saveParameters(@PathParam("printername") String printerName,@PathParam("json") String json) throws InappropriateDeviceException {
+		Printer printer = getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("getLiftTime", false, "Printer not started:" + printerName);
+		}
+		printer.getUartScreenNet().action_save_parameters(json);
+		return new MachineResponse("saveParameters", true, "ok");
+		
+	}
+    
+    @ApiOperation(value="admin login")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, response=MachineResponse.class, message = SwaggerMetadata.MACHINE_RESPONSE),
+            @ApiResponse(code = 500, message = SwaggerMetadata.UNEXPECTED_ERROR)})
+	@GET
+	@Path("adminLogin/{printername}/{pwd}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public MachineResponse adminLogin(@PathParam("printername") String printerName,@PathParam("pwd") String pwd) throws InappropriateDeviceException {
+		Printer printer = getPrinter(printerName);
+		if (printer == null) {
+			return new MachineResponse("adminLogin", false, "Printer not started:" + printerName);
+		}
+		boolean ok = printer.getUartScreenNet().action_admin_login(pwd);
+		return new MachineResponse("adminLogin", ok?true:false, ok?"ok":"fail");
+		
+	}
 }
 

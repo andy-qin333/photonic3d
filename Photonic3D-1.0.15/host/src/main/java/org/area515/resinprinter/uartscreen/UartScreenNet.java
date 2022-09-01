@@ -31,6 +31,8 @@ import org.area515.resinprinter.services.PrinterService;
 import org.area515.util.BasicUtillities;
 import org.area515.util.IOUtilities;
 
+import com.alibaba.fastjson.JSONObject;
+
 
 public class UartScreenNet
 {
@@ -48,6 +50,20 @@ public class UartScreenNet
     private boolean imageFullEnabled = false;
     
     private int ledPwmValue = 0;
+    
+    private int numberOfFirstLayers;
+    private int firstLayerTime;
+    private int layerTime;
+    private int resumeLayerTime;
+    private double liftDistance;
+    private double liftFeedSpeed;
+    private double liftRetractSpeed;
+    private int delayTimeBeforeSolidify;
+    private int delayTimeAfterSolidify;
+    private int delayTimeAsLiftedTop;
+    private int delayTimeForAirPump;
+    private boolean parameterEnabled;
+    private boolean detectionEnabled;
 
     public UartScreenNet(Printer printer)
     {
@@ -399,5 +415,75 @@ public class UartScreenNet
     
 		return json;
 	}
+    
+    private void saveParameters()
+    {
+        getPrinter().getConfiguration().getSlicingProfile().getSelectedInkConfig().setNumberOfFirstLayers(numberOfFirstLayers);
+        getPrinter().getConfiguration().getSlicingProfile().getSelectedInkConfig().setFirstLayerExposureTime(firstLayerTime);
+        getPrinter().getConfiguration().getSlicingProfile().getSelectedInkConfig().setExposureTime(layerTime);
+        getPrinter().getConfiguration().getSlicingProfile().setResumeLayerExposureTime(resumeLayerTime);
+        getPrinter().getConfiguration().getSlicingProfile().setLiftDistance(liftDistance);
+        getPrinter().getConfiguration().getSlicingProfile().setLiftFeedSpeed(liftFeedSpeed);
+        getPrinter().getConfiguration().getSlicingProfile().setLiftRetractSpeed(liftRetractSpeed);
+        getPrinter().getConfiguration().getSlicingProfile().setDelayTimeBeforeSolidify(delayTimeBeforeSolidify);
+        getPrinter().getConfiguration().getSlicingProfile().setDelayTimeAfterSolidify(delayTimeAfterSolidify);
+        getPrinter().getConfiguration().getSlicingProfile().setDelayTimeAsLiftedTop(delayTimeAsLiftedTop);
+        getPrinter().getConfiguration().getSlicingProfile().setDelayTimeForAirPump(delayTimeForAirPump);
+        getPrinter().getConfiguration().getSlicingProfile().setParameterEnabled(parameterEnabled);
+        getPrinter().getConfiguration().getSlicingProfile().setDetectionEnabled(detectionEnabled);
+        PrinterService.INSTANCE.savePrinter(getPrinter());
+    }
+    
+    public void action_save_parameters(String json)
+    {
+    	JSONObject object = JSONObject.parseObject(json);
+    	
+    	String valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[0]));
+    	numberOfFirstLayers = Integer.parseInt(valueString);
+    	
+    	valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[1]));
+    	firstLayerTime = Integer.parseInt(valueString);    	
+    	
+    	valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[2]));
+    	layerTime = Integer.parseInt(valueString);   
+    	
+    	valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[3]));
+    	resumeLayerTime = Integer.parseInt(valueString);   
+    	
+    	valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[4]));
+    	liftDistance = Integer.parseInt(valueString); 
+    	
+    	valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[5]));
+    	liftFeedSpeed = Integer.parseInt(valueString); 
+    	
+    	valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[6]));
+    	liftRetractSpeed = Integer.parseInt(valueString);
+   
+    	valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[7]));
+    	delayTimeBeforeSolidify = Integer.parseInt(valueString);
+    	
+    	valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[8]));
+    	delayTimeAfterSolidify = Integer.parseInt(valueString);
+    	
+    	valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[9]));
+    	delayTimeForAirPump = Integer.parseInt(valueString);
+    	
+    	valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[10]));
+    	parameterEnabled = valueString.equals("true")?true:false;
+    	
+    	valueString = object.getString(String.valueOf((int)UartScreenVar.addr_txt_parameters[11]));
+    	detectionEnabled = valueString.equals("true")?true:false;
+    	
+    	saveParameters();
+    	
+    }
+    
+    public boolean action_admin_login(String pwd)
+    {
+    	pwd = pwd.replaceAll("[^\\x20-\\x7E]", "");
+    	if( pwd.equals("123") )
+    		return true;
+    	return false;
+    }
     
 }

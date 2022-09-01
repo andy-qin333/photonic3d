@@ -54,7 +54,7 @@ public class UartScreenVar
     static final char[] addr_txt_material = {0x1400, 0x1410, 0x1420, 0x1430, 0x1440, 0x1450, 0x1460};
     static final char addr_txt_led_temperature = 0x1500;
     static final char addr_txt_admin_password = 0x1600;
-    static final char[] addr_txt_parameters = {0x1700, 0x1710, 0x1720, 0x1730, 0x1740, 0x1750, 0x1760, 0x1770, 0x1780, 0x1790, 0x17A0};
+    static final char[] addr_txt_parameters = {0x1700, 0x1710, 0x1720, 0x1730, 0x1740, 0x1750, 0x1760, 0x1770, 0x1780, 0x1790, 0x17A0, 0x17A1};
     static final char addr_txt_lifetime_led = 0x1800;
     static final char addr_txt_lifetime_screen = 0x1810;
     static final char addr_txt_lifetime_film = 0x1820;
